@@ -1,0 +1,2165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="게임 기획자 조성민의 포트폴리오. 시스템·콘텐츠 기획과 밸런스, 테스트 데이터 기반 수치 조정 기록. 용사 때문에 레벨업, 작은 왕국, 위치 크로니클, 라스트 글래디에이터, 메이플 서바이버.">
+<title>조성민 | 게임 기획자 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<style>
+@font-face {
+  font-family: "DNFBitBit";
+  src: url("fonts/DNFBitBit.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Maplestory";
+  src: url("fonts/Maplestory-Light.woff2") format("woff2");
+  font-weight: 300 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Maplestory";
+  src: url("fonts/Maplestory-Bold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-display: swap;
+}
+/* ══════════════════════════════════════════════════════════════
+   레퍼런스(haneul68.github.io/khanuel-portfolio)의 정보구조와
+   비주얼 문법을 실측 토큰 기준으로 재현하되, 코드는 새로 작성했다.
+   원본 저장소에 LICENSE 가 없어 소스 재배포가 불가능하기 때문이다.
+
+   실측 원본값: --bg #050915 / --panel-strong #10182d / --line #263450
+                --text #f4f7ff / --muted #9ba8c4 / radius 8~10
+   바꾼 값: 액센트. 원본은 --primary #8a4dff, --accent #45c7ff 였으나
+            같은 직군 구직자와 색까지 겹치지 않도록 앰버+틸로 교체했다.
+            퍼플로 되돌리려면 아래 두 줄만 원래 값으로 바꾸면 된다.
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:           #050915;
+  --board:        #050a16;
+  --panel:        rgba(13, 20, 38, .88);
+  --panel-strong: #10182d;
+  --line:         #35435f;
+  /* 텍스트 3단계. 카드 바탕(약 #121d36) 기준 실측 대비:
+     text 15:1 / muted 8.6:1 / text-3 5.5:1 로 전부 WCAG AA 이상 */
+  --text:         #f2f6ff;
+  --muted:        #b6c2d8;
+  --text-3:       #8d9ab4;
+
+  --primary:      #ff7d4d;   /* 원본: #8a4dff */
+  --accent:       #5fe0ca;   /* 원본: #45c7ff */
+  --gold:         #ffc63d;
+
+  --card-radius: 8px;
+  /* 메이플스토리 폰트 — Press Start 2P를 교체했다. 블록체 픽셀 폰트는
+     8~9px 크기에서 글자가 서로 뭉개져 거의 안 읽혔고, 한글 글리프도
+     없어서 한글 라벨엔 아예 못 썼다. 메이플스토리는 작은 크기에서도
+     읽히고 한글을 정식으로 지원한다 */
+  --pixel: "Maplestory", "Noto Sans KR", sans-serif;
+  --sans: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: #02040a;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+body.locked { overflow: hidden; }
+h1, h2, h3, h4 { margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★★ 게임 배경 이미지 넣는 곳 ★★★
+
+   1) 아래 각 씬의 레이어에 URL만 넣으면 끝입니다.
+      .scene[data-scene="kingdom"] .far { --img: url("작은왕국_원경.png"); }
+
+   2) 이미지를 다 넣었으면 HTML 의 <div class="scene-stage"> 에
+      class="scene-stage has-art" 로 has-art 한 단어만 추가하세요.
+      그러면 지금 깔려 있는 자리표시 실루엣이 전부 사라집니다.
+
+   레이어는 깊이 순서로 sky / far / mid / near 네 장이고,
+   각각 다른 속도로 움직입니다(--k 값이 시차 계수).
+   레이어가 분리 안 된 통짜 배경 1장뿐이면 .far 에만 넣어도 동작합니다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ↓↓↓ 여기에 실제 이미지 URL 을 채우세요 ↓↓↓
+.scene[data-scene="home"]      .far  { --img: url(""); }
+.scene[data-scene="gladiator"] .far  { --img: url(""); }
+.scene[data-scene="gladiator"] .mid  { --img: url(""); }
+.scene[data-scene="chronicle"] .far  { --img: url(""); }
+.scene[data-scene="kingdom"]   .far  { --img: url(""); }
+   ↑↑↑ ------------------------------------- ↑↑↑ */
+
+.scene-stage {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: hidden; background: #02040a;
+}
+.scene {
+  position: absolute; inset: -6% -4%;
+  opacity: 0; visibility: hidden;
+  transition: opacity .75s ease, visibility .75s, transform .75s ease;
+  transform: scale(1.06);
+}
+.scene.is-on { opacity: 1; visibility: visible; transform: scale(1); }
+
+.layer {
+  position: absolute; inset: 0;
+  background-image: var(--img, none);
+  background-size: cover; background-position: center bottom;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transform: translate3d(calc(var(--mx, 0px) * var(--k)), calc(var(--py, 0px) * var(--k)), 0);
+  will-change: transform;
+}
+.layer.sky  { --k: .12; }
+.layer.far  { --k: .34; }
+.layer.mid  { --k: .62; }
+.layer.near { --k: 1; }
+
+/* 하늘은 이미지가 없어도 항상 씬 색을 깔아준다 */
+.layer.sky { background-color: var(--sky, #060b18); }
+.scene[data-scene="home"]      { --sky: #060b18; --tint: 255,107,53; }
+.scene[data-scene="gladiator"] { --sky: #140a09; --tint: 255,107,53; }
+.scene[data-scene="chronicle"] { --sky: #061715; --tint: 79,214,192; }
+.scene[data-scene="kingdom"]   { --sky: #120d05; --tint: 255,198,61; }
+
+/* 씬 분위기: 위쪽 글로우 + 아래쪽 어둠 */
+.scene::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(90% 55% at 62% 20%, rgba(var(--tint), .16), transparent 60%),
+    linear-gradient(180deg, transparent 22%, rgba(2, 4, 10, .62) 62%, rgba(2, 4, 10, .88) 90%, #02040a 100%);
+}
+
+/* ── 자리표시 실루엣 (이미지 넣고 has-art 붙이면 사라짐) ─────── */
+.ph { position: absolute; left: 0; right: 0; bottom: 0; }
+.scene-stage.has-art .ph { display: none; }
+
+.ph.far  { height: 46%; background: #0d1526; opacity: .9; }
+.ph.mid  { height: 30%; background: #0a1120; }
+.ph.near { height: 17%; background: #060b16; }
+
+/* 씬마다 다른 스카이라인. 계단형이라 픽셀 실루엣처럼 읽힌다 */
+.scene[data-scene="home"] .ph.far {
+  clip-path: polygon(0 62%,7% 62%,7% 40%,12% 40%,12% 62%,22% 62%,22% 24%,27% 24%,27% 10%,31% 10%,31% 24%,36% 24%,36% 62%,52% 62%,52% 34%,58% 34%,58% 62%,72% 62%,72% 18%,77% 18%,77% 62%,88% 62%,88% 46%,94% 46%,94% 62%,100% 62%,100% 100%,0 100%);
+}
+.scene[data-scene="gladiator"] .ph.far {
+  clip-path: polygon(0 70%,4% 70%,4% 30%,10% 22%,16% 30%,16% 70%,22% 70%,22% 26%,28% 18%,34% 26%,34% 70%,40% 70%,40% 24%,46% 14%,52% 24%,52% 70%,58% 70%,58% 26%,64% 18%,70% 26%,70% 70%,76% 70%,76% 30%,82% 22%,88% 30%,88% 70%,100% 70%,100% 100%,0 100%);
+}
+.scene[data-scene="chronicle"] .ph.far {
+  clip-path: polygon(0 68%,10% 68%,10% 44%,15% 44%,17% 20%,19% 44%,24% 44%,24% 68%,38% 68%,38% 30%,42% 30%,44% 6%,46% 30%,50% 30%,50% 68%,64% 68%,64% 40%,69% 40%,71% 16%,73% 40%,78% 40%,78% 68%,100% 68%,100% 100%,0 100%);
+}
+.scene[data-scene="kingdom"] .ph.far {
+  clip-path: polygon(0 64%,6% 64%,6% 48%,10% 48%,10% 64%,16% 64%,16% 30%,20% 30%,20% 20%,26% 20%,26% 30%,30% 30%,30% 64%,46% 64%,46% 44%,50% 44%,50% 34%,56% 34%,56% 44%,60% 44%,60% 64%,76% 64%,76% 26%,82% 26%,82% 64%,100% 64%,100% 100%,0 100%);
+}
+.ph.mid  { clip-path: polygon(0 58%,9% 58%,13% 40%,20% 40%,24% 58%,42% 58%,47% 36%,55% 36%,59% 58%,78% 58%,83% 42%,91% 42%,95% 58%,100% 58%,100% 100%,0 100%); }
+.ph.near { clip-path: polygon(0 40%,14% 40%,19% 22%,30% 22%,35% 40%,58% 40%,64% 18%,76% 18%,81% 40%,100% 40%,100% 100%,0 100%); }
+
+/* ══ 스크롤 워커: 픽셀 캐릭터가 진행도다 ═══════════════════ */
+.walker {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
+  height: 64px; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(2, 4, 10, .86) 46%);
+}
+.walk-track {
+  position: absolute; left: 16px; right: 16px; bottom: 13px; height: 2px;
+  background: repeating-linear-gradient(90deg, #2b3a58 0 6px, transparent 6px 10px);
+}
+.walk-mark {
+  position: absolute; bottom: -3px; left: var(--at); width: 2px; height: 8px;
+  background: #35455f; transform: translateX(-1px);
+  transition: background .3s, height .3s;
+}
+.walk-mark.passed { background: var(--primary); height: 11px; }
+
+.walk-char {
+  position: absolute; bottom: 11px; left: 16px;
+  width: calc(100% - 32px); height: 58px;
+  transform: translateX(var(--walk, 0px));
+  will-change: transform;
+}
+/* 아리엘 워커 — 도트 픽셀 강제(pixelated) 안 함. 원본이 디테일한
+   일러스트 스프라이트라 억지로 픽셀화하면 그림체가 뭉개진다.
+   대신 부드럽게 스케일하는 작은 마스코트로 취급한다 */
+.walk-char img {
+  position: absolute; bottom: 0; left: 0;
+  width: 33px; height: auto;
+  transform: scaleX(var(--face, 1));
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)) drop-shadow(0 0 7px rgba(var(--tint-ui, 255,107,53), .35));
+}
+.walker.is-walking .walk-char img { animation: bob .34s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2px; } }
+
+.walk-scene {
+  position: absolute; right: 16px; bottom: 20px;
+  font-family: var(--pixel); font-size: 10.5px; color: var(--text-3);
+  letter-spacing: .04em;
+}
+.walk-scene b { color: var(--primary); }
+
+/* ── 사이트 쉘 ──────────────────────────────────────────────── */
+.site-shell {
+  position: relative; z-index: 1;
+  width: min(1380px, calc(100% - 16px));
+  margin: 8px auto 60px;
+  min-height: 100vh;
+  border: 1px solid #202b42;
+  border-radius: 0 0 14px 14px;
+  /* 씬은 비치되 글자 뒤 바탕은 항상 어둡게. 시인성이 씬보다 우선한다 */
+  background: rgba(4, 9, 20, .84);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .45);
+  overflow: hidden;
+}
+
+/* ── 상단바 ─────────────────────────────────────────────────── */
+.topbar {
+  height: 68px; position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 18px;
+  padding: 0 20px;
+  border-bottom: 1px solid #1d2740;
+  background: rgba(5, 9, 21, .92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand-chip {
+  width: 34px; height: 34px; display: grid; place-content: center;
+  border: 1px solid rgba(255, 107, 53, .55); border-radius: 9px;
+  background: rgba(255, 107, 53, .16);
+  font-family: var(--pixel); font-size: 10.5px; color: var(--primary);
+}
+.brand-name { font-family: var(--pixel); font-size: 12px; letter-spacing: .04em; }
+.topnav { display: flex; gap: 4px; margin-left: 10px; overflow-x: auto; scrollbar-width: none; }
+.topnav::-webkit-scrollbar { display: none; }
+.topnav a {
+  padding: 8px 13px; border-radius: 8px; text-decoration: none;
+  font-size: 13.5px; font-weight: 500; color: var(--muted); white-space: nowrap;
+  transition: background .18s, color .18s;
+}
+.topnav button.navtab {
+  padding: 8px 13px; border-radius: 8px; border: 1px solid rgba(255,107,53,.45); background: rgba(255,107,53,.08);
+  font: inherit; font-size: 13.5px; font-weight: 600; color: var(--primary); white-space: nowrap; cursor: pointer; transition: background .18s, color .18s;
+}
+.topnav button.navtab:hover, .topnav button.navtab:focus-visible { background: rgba(255,107,53,.2); color: var(--text); }
+.topnav a:hover { background: #141e35; color: var(--text); }
+.topnav a[aria-current="true"] { color: var(--primary); background: rgba(255,107,53,.12); }
+.top-actions { margin-left: auto; display: flex; gap: 8px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 15px; border-radius: 999px; border: 1px solid var(--line);
+  background: #101a2e; color: var(--text);
+  font-size: 12.5px; font-weight: 500; text-decoration: none; white-space: nowrap;
+  cursor: pointer; font-family: inherit;
+  transition: border-color .18s, background .18s;
+}
+.pill:hover { border-color: var(--primary); background: #16223a; }
+.pill-solid { background: var(--primary); border-color: var(--primary); color: #14060a; font-weight: 700; }
+.pill-solid:hover { background: #ff835a; border-color: #ff835a; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* ── 히어로 ─────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 590px;
+  display: grid;
+  grid-template-columns: minmax(430px, .92fr) 1.08fr;
+  align-items: center; gap: 20px;
+  padding: 48px 34px 26px;
+  overflow: hidden;
+  /* 씬이 가장 잘 보여야 하는 구간이라 바닥을 거의 비운다 */
+  background:
+    radial-gradient(circle at 77% 37%, rgba(255, 107, 53, .22), transparent 28%),
+    radial-gradient(circle at 24% 74%, rgba(79, 214, 192, .10), transparent 32%),
+    linear-gradient(180deg, rgba(6, 13, 30, .34), rgba(4, 8, 18, .58));
+}
+.star-layer, .star-layer::after {
+  position: absolute; inset: 0; content: "";
+  background-image: radial-gradient(#fff 1px, transparent 1.6px);
+  background-size: 86px 86px;
+  opacity: .26;
+  animation: starMove 18s linear infinite;
+  pointer-events: none;
+}
+.star-layer::after { background-size: 132px 132px; opacity: .16; animation-duration: 27s; }
+@keyframes starMove { from { transform: translateY(0); } to { transform: translateY(-86px); } }
+
+/* 히어로는 씬을 가장 밝게 보여주고 싶은 구간이라, 배경 전체를 어둡게
+   깔지 않고 글자 뒤에만 스크림을 둔다. 씬은 밝게, 글자는 또렷하게 */
+.hero-copy { position: relative; z-index: 2; }
+.hero-copy::before {
+  content: ""; position: absolute; z-index: -1;
+  inset: -34px -60px -34px -46px;
+  background: radial-gradient(72% 68% at 34% 50%, rgba(3, 6, 14, .93) 0%, rgba(3, 6, 14, .78) 52%, transparent 100%);
+}
+.hello {
+  display: inline-flex; padding: 7px 12px; margin-bottom: 20px;
+  border: 1px solid rgba(255,107,53,.5); border-radius: 8px;
+  background: rgba(255,107,53,.13); color: #ffc4ac;
+  font-family: var(--pixel); font-size: 10.5px;
+}
+.hero-name {
+  /* 홈 화면 최상단 이름 — DNFBitBit(던파 비트체)로 존재감을 준다.
+     본문·라벨은 그대로 메이플스토리/노토산스를 쓴다 */
+  font-family: "DNFBitBit", var(--pixel);
+  font-size: clamp(34px, 5.2vw, 58px);
+  line-height: 1.28; letter-spacing: .01em;
+  text-shadow: 0 0 22px rgba(255,107,53,.4), 4px 4px 0 rgba(0,0,0,.55);
+}
+.hero-name span { color: var(--primary); }
+.hero-role { margin-top: 22px; font-size: clamp(19px, 2.2vw, 26px); font-weight: 700; }
+.hero-role b { color: var(--primary); font-weight: 700; }
+.hero-desc { margin-top: 14px; color: var(--muted); max-width: 46ch; font-size: 15px; }
+.hero-tags { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+.hero-tags span {
+  padding: 7px 13px; border: 1px solid var(--line); border-radius: 999px;
+  background: #0d1526; font-size: 12.5px; color: #c3cee4;
+}
+.profile {
+  margin-top: 26px; display: flex; align-items: center; gap: 14px;
+  padding: 14px; border: 1px solid #2a3652; border-radius: 12px;
+  background: rgba(12, 19, 36, .82); max-width: 380px;
+}
+.avatar {
+  width: 58px; height: 58px; flex: none; border-radius: 50%;
+  border: 1px solid var(--line); background: #0e1729; overflow: hidden;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 6%; display: block; }
+/* 구직 상태 뱃지 — 채용 담당자가 가장 먼저 확인하는 정보 */
+.ready {
+  display: inline-block; margin-left: 7px; vertical-align: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  color: var(--accent); background: rgba(95,224,202,.13);
+  border: 1px solid rgba(95,224,202,.4); border-radius: 999px; padding: 2px 8px;
+}
+.profile b { display: block; font-size: 15px; }
+.profile span { display: block; font-size: 13px; color: var(--muted); }
+.profile .loc { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+.hero-cta { margin-top: 26px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.hero-art { position: relative; z-index: 2; display: grid; place-items: center; }
+.art-slot {
+  width: 100%; max-width: 460px; aspect-ratio: 4 / 5;
+  border: 2px dashed #33415f; border-radius: 16px;
+  background:
+    repeating-conic-gradient(rgba(255,255,255,.028) 0% 25%, transparent 0% 50%) 0 0 / 22px 22px,
+    radial-gradient(circle at 50% 42%, rgba(255,107,53,.16), transparent 62%);
+  display: grid; place-content: center; gap: 10px; text-align: center; padding: 24px;
+}
+.art-slot b { font-family: var(--pixel); font-size: 11.5px; color: var(--muted); line-height: 1.9; }
+.art-slot span { font-size: 12.5px; color: var(--text-3); }
+/* 실제 캐릭터 아트가 들어오면 자리표시 프레임(점선·라벨)을 걷어내고
+   투명 배경 PNG를 배경 씬 위에 그대로 얹는다 — 크롭 없이, 바닥 기준 정렬 */
+.art-slot.has-char { border: 0; background: none; padding: 0; display: block; aspect-ratio: auto; }
+.art-slot.has-char img {
+  display: block; width: 100%; height: auto; max-height: 78vh;
+  object-fit: contain; image-rendering: pixelated;
+  filter: drop-shadow(0 20px 26px rgba(0,0,0,.5));
+}
+
+.social-rail {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  z-index: 3; display: grid; gap: 8px;
+}
+.social-rail a {
+  width: 40px; height: 40px; display: grid; place-content: center;
+  border: 1px solid #2d3b59; border-radius: 10px; background: rgba(13,20,38,.9);
+  font-family: var(--pixel); font-size: 10px; color: var(--muted); text-decoration: none;
+  transition: color .18s, border-color .18s;
+}
+.social-rail a:hover { color: var(--primary); border-color: var(--primary); }
+
+/* ── 보드: 도트 그리드 + 글로우 ─────────────────────────────── */
+.block-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+  gap: 18px; padding: 18px;
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    radial-gradient(circle at 18% 20%, rgba(79,214,192,.10), transparent 28%),
+    radial-gradient(circle at 82% 16%, rgba(255,107,53,.16), transparent 30%),
+    rgba(5, 10, 22, .88);
+  background-size: 34px 34px, 34px 34px, auto, auto, auto;
+}
+.block-card {
+  position: relative; min-width: 0;
+  border: 1px solid rgba(86, 108, 156, .72);
+  border-radius: 10px; padding: 26px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.06), transparent 18%),
+    linear-gradient(180deg, rgba(18, 29, 54, .96), rgba(7, 13, 27, .96));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 22px 54px rgba(0,0,0,.34);
+  overflow: hidden;
+}
+/* 코너 브래킷: 이 디자인의 서명 요소 */
+.block-card::before, .block-card::after {
+  content: ""; position: absolute; width: 28px; height: 28px;
+  border-color: var(--primary); opacity: .8; pointer-events: none;
+}
+.block-card::before { top: 10px; left: 10px; border-top: 2px solid; border-left: 2px solid; }
+.block-card::after { right: 10px; bottom: 10px; border-right: 2px solid; border-bottom: 2px solid; }
+.block-wide { grid-column: 1 / -1; }
+
+#fit      { order: 1; }
+#featured { order: 2; }
+#projects { order: 3; }
+#data     { order: 4; }
+#about    { order: 5; align-self: start; }
+#skills   { order: 6; align-self: start; }
+#workflow { order: 7; }
+#ai       { order: 8; }
+#clips    { order: 9; }
+#contact  { order: 10; }
+
+.block-kicker {
+  display: inline-flex; margin-bottom: 8px; padding: 5px 8px;
+  border: 1px solid rgba(255, 107, 53, .58); border-radius: 7px;
+  background: rgba(255, 107, 53, .14);
+  color: #ffc0a4; font-family: var(--pixel); font-size: 10.5px; letter-spacing: 0;
+}
+.block-head { margin-bottom: 20px; }
+.block-head h2 { font-size: clamp(21px, 2.4vw, 27px); font-weight: 700; letter-spacing: -.01em; }
+.block-head p { margin-top: 7px; color: var(--muted); font-size: 14px; }
+
+/* ── 공통 조각 ──────────────────────────────────────────────── */
+.tagrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.tagrow span {
+  padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: #0e1830; font-size: 12px; color: #bcc8e0;
+}
+.mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.mini {
+  border: 1px solid var(--line); border-radius: var(--card-radius);
+  background: #0c1526; padding: 14px 15px;
+}
+.mini b { display: block; font-size: 14px; margin-bottom: 4px; }
+.mini span { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.icon-sq {
+  width: 30px; height: 30px; display: grid; place-content: center; margin-bottom: 10px;
+  border: 1px solid rgba(255,107,53,.4); border-radius: 8px;
+  background: rgba(255,107,53,.12); color: var(--primary);
+  font-family: var(--pixel); font-size: 10px;
+}
+.shot {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  border: 2px dashed #33415f; border-radius: 10px;
+  background:
+    repeating-conic-gradient(rgba(255,255,255,.03) 0% 25%, transparent 0% 50%) 0 0 / 18px 18px,
+    #0a1120;
+  display: grid; place-content: center; gap: 6px; text-align: center; padding: 16px;
+}
+.shot b { font-size: 14.5px; font-weight: 700; color: var(--muted); }
+.shot span { font-size: 12.5px; color: var(--text-3); }
+
+/* ── ABOUT ──────────────────────────────────────────────────── */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; margin-top: 18px; }
+.stat { border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 13px; text-align: center; }
+.stat b { display: block; font-family: var(--pixel); font-size: 15px; color: var(--primary); }
+.stat span { font-size: 12px; color: var(--muted); }
+
+/* ── 자격 / 학력 ────────────────────────────────────────────── */
+.log-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.log-list li {
+  display: grid; grid-template-columns: 12px 1fr; gap: 11px; align-items: start;
+  font-size: 13.5px; color: var(--muted);
+}
+.log-list i { font-style: normal; color: var(--accent); }
+.log-list b { color: var(--text); font-weight: 500; }
+
+/* ── WORKFLOW ───────────────────────────────────────────────── */
+.flow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.flow-step { border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 16px; }
+.flow-step .tag { font-family: var(--pixel); font-size: 10px; color: var(--accent); }
+.flow-step b { display: block; margin: 10px 0 6px; font-size: 14.5px; }
+.flow-step span { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+/* ── FEATURED ───────────────────────────────────────────────── */
+.featured-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .82fr); gap: 22px; }
+.featured-meta { font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 10px; }
+.stove-soon { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border: 1px solid var(--gold); border-radius: 999px; background: rgba(255, 198, 61, .12); color: var(--gold); font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
+.stove-soon::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.featured-in .stove-soon { margin-bottom: 12px; }
+.proj-body .stove-soon { margin-bottom: 8px; align-self: flex-start; }
+.featured-in h3 { font-size: clamp(23px, 2.8vw, 32px); font-weight: 900; }
+.featured-in > div > p { margin-top: 12px; color: var(--muted); font-size: 14.5px; }
+.featured-points { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 18px; }
+.featured-points div {
+  border: 1px solid var(--line); border-radius: var(--card-radius);
+  background: #0c1526; padding: 11px 13px; font-size: 12.5px; color: #c3cee4;
+}
+.badge-2d {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  padding: 4px 10px; border-radius: 6px; background: var(--primary); color: #14060a;
+  font-family: var(--pixel); font-size: 10px;
+}
+
+/* ── PROJECTS ───────────────────────────────────────────────── */
+.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filters button {
+  padding: 7px 16px; border-radius: 999px; border: 1px solid var(--line);
+  background: #0e1830; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.filters button:hover { color: var(--text); }
+.filters button[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: #14060a; font-weight: 700; }
+
+.proj-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: 14px; }
+.proj {
+  display: flex; flex-direction: column; text-align: left; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 12px; background: #0b1426;
+  padding: 0; overflow: hidden; font: inherit; color: inherit;
+  transition: transform .2s, border-color .2s;
+}
+.proj:hover { transform: translateY(-4px); border-color: var(--primary); }
+.proj[hidden] { display: none; }
+.proj-cover { position: relative; aspect-ratio: 16 / 9; border-bottom: 1px solid var(--line); }
+.proj-body { padding: 18px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.proj-body h4 { font-size: 18px; font-weight: 700; }
+.proj-body p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.proj-role { font-size: 12px; color: var(--accent); font-weight: 500; }
+.proj-open {
+  margin-top: auto; padding-top: 12px; font-size: 12.5px; font-weight: 700;
+  color: var(--primary); display: flex; align-items: center; gap: 6px;
+}
+
+/* ── CONTACT ────────────────────────────────────────────────── */
+/* 채용 담당자가 스캔하는 기본 정보 — 링크보다 위에 둔다 */
+.hire-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 2px; background: var(--line); margin: 0 0 14px; }
+.hire-facts > div { background: #0c1526; padding: 14px 16px; }
+.hire-facts dt { font-size: 12px; font-weight: 500; letter-spacing: .06em; color: var(--text-3); }
+.hire-facts dd { margin: 6px 0 0; font-size: 14.5px; font-weight: 600; color: var(--text); }
+
+.contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.contact-grid a {
+  display: grid; gap: 6px; padding: 18px; text-decoration: none;
+  border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526;
+  transition: border-color .18s, background .18s;
+}
+.contact-grid a:hover { border-color: var(--primary); background: #101b30; }
+.contact-grid .k { font-family: var(--pixel); font-size: 10px; color: var(--accent); }
+.contact-grid .v { font-size: 14px; word-break: break-all; }
+
+.site-foot {
+  padding: 22px 26px 30px; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  font-family: var(--pixel); font-size: 11px; color: var(--text-3);
+}
+
+/* ══ 프로젝트 상세 오버레이 ═════════════════════════════════ */
+.overlay {
+  position: fixed; inset: 0; z-index: 90;
+  /* 뒤 씬 전환이 보이도록 살짝 비운다 */
+  background: rgba(2, 5, 12, .58);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  padding: 16px;
+}
+.overlay[hidden] { display: none; }
+.project-detail {
+  display: grid; grid-template-columns: 246px minmax(0, 1fr);
+  width: min(1320px, 100%); height: calc(100dvh - 32px); margin: 0 auto;
+  border: 1px solid #2a3652;
+  border-radius: 14px; background: rgba(6, 12, 26, .93); overflow: hidden;
+  animation: modalIn .28s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.detail-menu { padding: 26px 18px 18px; border-right: 1px solid #263551; background: #0b1427; overflow: auto; }
+.detail-menu .dt { font-family: var(--pixel); font-size: 11.5px; color: var(--primary); line-height: 1.7; margin-bottom: 6px; }
+.detail-menu .ds { font-size: 12px; color: var(--text-3); margin-bottom: 18px; }
+.detail-menu nav { display: grid; gap: 3px; }
+.detail-menu button {
+  display: block; width: 100%; text-align: left; padding: 11px 12px; border: 0;
+  border-radius: 8px; background: transparent; color: #cdd7ec;
+  font: inherit; font-size: 13.5px; cursor: pointer;
+  transition: background .16s, color .16s;
+}
+.detail-menu button:hover { background: #18223a; color: #fff; }
+.detail-menu button[aria-current="true"] { background: rgba(255,107,53,.14); color: var(--primary); font-weight: 700; }
+
+.detail-content { position: relative; overflow-y: auto; overflow-x: hidden; min-width: 0; padding: 26px 46px 90px; }
+.icon-close {
+  position: sticky; top: 0; float: right; z-index: 5;
+  width: 38px; height: 38px; border: 1px solid #344461; border-radius: 8px;
+  background: #121b30; color: #fff; font-size: 22px; line-height: 1; cursor: pointer;
+}
+.icon-close:hover { border-color: var(--primary); color: var(--primary); }
+
+/* 프로젝트 히어로 배너 — super_dreamer_v3/style.css 의 .project-hero 패턴 그대로.
+   고정 비율 + cover + 그라디언트 오버레이 + 좌상단 뱃지. 이 패턴은 "배너 1장"에만
+   쓰고, 여러 장 스크린샷을 늘어놓는 갤러리(.rshot)에는 크롭을 걸지 않는다 — 그게
+   레퍼런스 사이트가 두 상황을 구분해서 쓰는 방식이다. */
+.pj-hero { position: relative; aspect-ratio: 16 / 8.2; overflow: hidden; background: #000; }
+.pj-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9) brightness(.92); }
+.pj-hero.noart { background: radial-gradient(120% 140% at 85% 20%, rgba(255,107,53,.30), transparent 55%), radial-gradient(90% 120% at 10% 90%, rgba(95,224,202,.14), transparent 60%), #0a1020; }
+.pj-hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,8,15,.12) 0%, rgba(6,8,15,.32) 45%, rgba(6,8,15,.95) 100%); }
+.pj-hero-badges { position: absolute; top: 18px; left: 18px; z-index: 2; display: flex; gap: 8px; flex-wrap: wrap; }
+/* 카드 커버처럼 이미지 위에 글자를 얹지 않는 자리는 어둡게 죽일 이유가 없다.
+   오버레이·필터 없이 원본 그대로 깔끔하게 보여준다 */
+.pj-hero-clean img { filter: none; }
+
+.detail-hero { position: relative; border: 1px solid #314565; border-radius: 16px; overflow: hidden; margin-bottom: 34px; }
+.detail-hero .pj-hero { aspect-ratio: 16 / 7.2; }
+.detail-hero-title { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: clamp(20px, 4vw, 40px) clamp(20px, 4vw, 40px) 22px; }
+.detail-hero-body {
+  padding: clamp(20px, 4vw, 40px);
+  background: linear-gradient(135deg, rgba(11, 18, 34, .98), rgba(12, 23, 45, .94));
+}
+.detail-hero h2 { font-family: var(--pixel); font-size: clamp(17px, 2.3vw, 26px); line-height: 1.6; color: var(--primary); }
+.detail-hero .sub { margin-top: 12px; font-size: 16px; font-weight: 700; color: var(--text); }
+.detail-hero p.d { margin-top: 14px; color: var(--muted); font-size: 14.5px; max-width: 62ch; }
+
+.dsec { scroll-margin-top: 10px; margin-bottom: 40px; }
+.dsec > h3 {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 20px; font-weight: 700; margin-bottom: 16px;
+  padding-bottom: 12px; border-bottom: 1px solid #22304c;
+}
+.dsec > h3 i {
+  font-style: normal; width: 26px; height: 26px; flex: none;
+  display: grid; place-content: center; border-radius: 7px;
+  border: 1px solid rgba(255,107,53,.42); background: rgba(255,107,53,.13);
+  color: var(--primary); font-family: var(--pixel); font-size: 10px;
+}
+.dsec p { color: var(--muted); font-size: 14.5px; }
+.dsec p + p { margin-top: 12px; }
+.dsec b { color: var(--text); font-weight: 700; }
+
+.dpanel { border: 1px solid var(--line); border-radius: 12px; background: rgba(10,17,32,.7); padding: 18px; margin-top: 14px; }
+.dpanel > h4 {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 14px;
+  font-family: var(--pixel); font-size: 10.5px; color: var(--accent);
+}
+.dsteps { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 9px; }
+.dstep { border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 13px; }
+.dstep .n { font-family: var(--pixel); font-size: 10px; color: var(--accent); }
+.dstep b { display: block; margin: 8px 0 5px; font-size: 14px; }
+.dstep span { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+.dspec { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 9px; margin-top: 16px; }
+.dspec div { border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 12px 14px; }
+.dspec dt { font-size: 12px; font-weight: 500; letter-spacing: .06em; color: var(--text-3); }
+.dspec dd { margin: 7px 0 0; font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dspec dd a { color: var(--accent); text-decoration: none; word-break: break-all; }
+.dspec dd a:hover { text-decoration: underline; }
+
+.dcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 9px; }
+.dcards > div { border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 14px; }
+.dcards b { display: block; font-size: 13.5px; margin-bottom: 5px; }
+.dcards span { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+.dlog { display: grid; gap: 9px; margin-top: 14px; }
+.dlog > div {
+  display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 16px;
+  border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 15px 16px;
+}
+/* 한글이 들어가는 라벨은 픽셀 폰트를 쓰지 않는다.
+   Press Start 2P 에 한글 글리프가 없어서 조용히 폴백되고, 그게 더 안 읽힌다 */
+.dlog dt { font-size: 12.5px; font-weight: 700; letter-spacing: .04em; color: var(--primary); }
+.dlog dd { margin: 0; font-size: 14px; color: var(--muted); }
+
+/* 데이터 표 — 수호자/침입자/구역처럼 실제 수치를 나열할 때 */
+.dtable-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--card-radius); margin-top: 14px; }
+.dtable { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 520px; }
+.dtable th {
+  text-align: left; background: var(--panel-2); color: var(--text-3);
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em;
+  padding: 8px 11px; font-weight: 700; white-space: nowrap; border-bottom: 1px solid var(--line);
+}
+.dtable td { padding: 8px 11px; border-bottom: 1px solid var(--line); background: #0c1526; white-space: nowrap; }
+.dtable tr:last-child td { border-bottom: 0; }
+.dtable td.dname { font-weight: 700; color: var(--text); white-space: normal; }
+.dtable td.dnum { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+.dtable td.ddesc { white-space: normal; color: var(--muted); min-width: 150px; }
+
+/* 실제 코드 발췌 — 문법 강조 없이 모노스페이스 + 주석 색만 구분 */
+.dcode-wrap { border: 1px solid var(--line); border-radius: var(--card-radius); overflow: hidden; margin-top: 14px; background: #0c1526; }
+.dcode-file {
+  font-family: var(--mono); font-size: 11.5px; padding: 8px 13px;
+  background: var(--panel-2); border-bottom: 1px solid var(--line); color: var(--text-3);
+}
+.dcode-file b { color: var(--text); font-weight: 600; }
+.dcode { margin: 0; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.75; color: var(--muted); white-space: pre; }
+.dcode .cm { color: var(--text-3); }
+.dcode .hl { color: var(--primary); }
+
+/* 왜 이렇게 했는가 — 코드 밑에 붙는 근거 */
+.dwhy { border-left: 3px solid var(--primary); background: #0c1526; border-radius: 0 var(--card-radius) var(--card-radius) 0; padding: 12px 16px; margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+.dwhy b { display: block; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--primary); margin-bottom: 6px; }
+
+/* 사례 카드 (버그/기능/밸런싱) */
+.dcase { border-left: 3px solid var(--line); padding-left: 16px; margin-top: 22px; }
+.dcase:first-child { margin-top: 0; }
+.dcase-tag { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px; margin-bottom: 8px; }
+.dcase-tag.bug { color: #ffb0a0; background: rgba(255,107,53,.16); }
+.dcase-tag.feature { color: var(--accent); background: rgba(95,224,202,.14); }
+.dcase-tag.balance { color: var(--gold); background: rgba(255,198,61,.14); }
+.dcase h4 { font-size: 14.5px; font-weight: 700; margin-bottom: 10px; }
+
+/* AI 협업 2열 */
+/* 움짤 전용 영역 */
+.clip-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.clipcard { text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 0; border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--panel); overflow: hidden; display: flex; flex-direction: column; transition: border-color .25s, transform .25s; }
+.clipcard:hover, .clipcard:focus-visible { border-color: var(--primary); transform: translateY(-2px); }
+.clipcard .cbox { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; border-bottom: 1px solid var(--line); }
+.clipcard .cbox img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.clipcard .cbox.tallsrc img { filter: blur(16px) brightness(.5); transform: scale(1.12); }
+.clipcard .cbox.tallsrc .loopv { object-fit: contain; background: transparent; }
+.clipcard .cbody { padding: 14px 16px 16px; }
+.clipcard h4 { margin: 0 0 4px; font-size: 16px; }
+.clipcard p { margin: 0 0 8px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+@media (max-width: 640px) { .clip-grid { grid-template-columns: 1fr; } }
+.dvids { grid-template-columns: repeat(2, 1fr); }
+.dvids.tall { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.dvidf { margin: 0; border: 1px solid var(--line); border-radius: var(--card-radius); overflow: hidden; background: #000; }
+.dvid { width: 100%; height: auto; display: block; background: #05080f; object-fit: contain; }
+.dvidf figcaption { font-family: var(--mono); font-size: 11.5px; color: var(--text-3); line-height: 1.5; padding: 9px 11px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.aicard { display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--card-radius); background: var(--panel); transition: border-color .25s, transform .25s; }
+.aicard:hover, .aicard:focus-visible { border-color: var(--primary); transform: translateY(-2px); }
+.aic-lead { margin: 0 0 14px; font-size: 14.5px; line-height: 1.7; color: var(--muted); }
+.aic-lead b { color: var(--text); }
+.aic-label { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--text-3); margin-bottom: 8px; }
+.aic-chips { margin: 0 0 14px; }
+.linkbtn { font: inherit; color: var(--primary); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.dfacts { margin: 22px 0 0; border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; overflow: hidden; }
+.dfacts h4 { margin: 0; padding: 10px 14px; font-family: var(--pixel); font-size: 10.5px; color: var(--accent); border-bottom: 1px solid var(--line); background: var(--panel-2); }
+.dfacts > div { display: grid; grid-template-columns: 128px 1fr; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+.dfacts > div:last-child { border-bottom: 0; }
+.dfacts dt { font-size: 12px; font-weight: 700; color: var(--text-3); }
+.dfacts dd { margin: 0; font-size: 13px; line-height: 1.75; color: var(--muted); }
+.dfacts dd b { color: var(--text); }
+.dfacts dd a { color: var(--accent); text-decoration: none; }
+.dfacts dd a:hover { text-decoration: underline; }
+@media (max-width: 640px) { .dfacts > div { grid-template-columns: 1fr; gap: 3px; } }
+.proj-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.proj-facts span { font-family: var(--mono); font-size: 11px; color: var(--accent); border: 1px solid rgba(95,224,202,.4); border-radius: 999px; padding: 2px 8px; }
+.dclip { margin-top: 18px; }
+.dclip-box { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--line); border-radius: var(--card-radius); background: #05080f; }
+.dclip.tall .dclip-box { aspect-ratio: 9 / 16; max-width: 340px; }
+.dclip-box img, .dclip-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
+.dclip-box iframe { opacity: 0; transition: opacity .5s; pointer-events: none; }
+.dclip-box.playing iframe { opacity: 1; }
+/* 움짤처럼 반복되는 플레이 영상: 이미지 위에 겹쳐 두고, 재생이 시작되면 서서히 드러난다 */
+.loopv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s; border: 0; display: block; background: #000; }
+.loopv.on { opacity: 1; }
+.pj-hero .loopv { z-index: 1; }
+.proj:hover .proj-cover .loopv { transform: scale(1.06); }
+.proj-cover .loopv { transition: opacity .6s, transform .8s cubic-bezier(.16, 1, .3, 1); }
+.dclip-cap { margin-top: 8px; font-size: 12.5px; color: var(--text-3); }
+.dclip-cap a { color: var(--accent); text-decoration: none; }
+.dsplit { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.dsplit > div { border: 1px solid var(--line); border-radius: var(--card-radius); background: #0c1526; padding: 15px 17px; }
+.dsplit h5 { font-size: 13.5px; margin-bottom: 10px; }
+.dsplit ul { margin: 0; padding-left: 16px; font-size: 12.5px; color: var(--muted); }
+.dsplit li { margin-bottom: 7px; line-height: 1.55; }
+.dsplit li b { color: var(--text); font-weight: 600; }
+@media (max-width: 560px) { .dsplit { grid-template-columns: 1fr; } }
+
+/* 실제 스크린샷 카드 — super_dreamer_v3/style.css 의 .gallery figure 패턴을 그대로 따른다.
+   높이를 강제로 잘라내지 않는다: width만 채우고 height는 auto — 원본 비율 그대로,
+   크롭 없음. 캡션은 이미지 위에 얹지 않고 아래에 별도 줄로 붙인다. */
+.dgallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.rshot { margin: 0; border: 1px solid var(--line); border-radius: var(--card-radius); overflow: hidden; background: #000; }
+.rshot img { width: 100%; height: auto; display: block; filter: saturate(.92); }
+.rshot figcaption {
+  font-family: var(--mono); font-size: 11.5px; color: var(--text-3); line-height: 1.5;
+  padding: 9px 11px; border-top: 1px solid var(--line); background: var(--panel-2);
+}
+@media (max-width: 640px) { .dgallery { grid-template-columns: 1fr; } }
+
+.timing { display: flex; height: 44px; margin-top: 12px; border-radius: var(--card-radius); overflow: hidden; border: 1px solid var(--line); }
+.timing > div { display: grid; place-content: center; text-align: center; font-family: var(--pixel); font-size: 9.5px; padding: 0 6px; }
+.t1 { flex: 2; background: var(--primary); color: #14060a; }
+.t2 { flex: 5; background: rgba(255,107,53,.16); color: #ffc0a4; }
+.t3 { flex: 4; background: #0c1526; color: var(--text-3); }
+
+.states { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.states span { padding: 5px 9px; border: 1px solid var(--line); border-radius: 6px; background: #0c1526; font-size: 12px; color: #bcc8e0; }
+.states span.on { border-color: var(--primary); color: var(--primary); }
+
+.dnext { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 10px; }
+.dnext button {
+  text-align: left; border: 1px solid var(--line); border-radius: 10px; background: #0c1526;
+  padding: 16px; font: inherit; color: inherit; cursor: pointer; transition: border-color .18s;
+}
+.dnext button:hover { border-color: var(--primary); }
+.dnext button b { display: block; font-size: 15px; margin-bottom: 4px; }
+.dnext button span { font-size: 12px; color: var(--muted); }
+
+code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background: #101a2e; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+
+/* ── 반응형 ─────────────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .block-board { grid-template-columns: 1fr; }
+  .featured-in { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; padding: 34px 20px 26px; }
+  .hero-art { order: -1; }
+  .art-slot { max-width: 320px; }
+  .social-rail { display: none; }
+  .project-detail { grid-template-columns: 1fr; height: calc(100vh - 32px); }
+  .detail-menu {
+    border-right: 0; border-bottom: 1px solid #263551;
+    padding: 16px; overflow-x: auto; overflow-y: hidden;
+  }
+  .detail-menu nav { grid-auto-flow: column; grid-auto-columns: max-content; gap: 6px; }
+  .detail-menu button { white-space: nowrap; padding: 8px 12px; }
+  .detail-content { padding: 20px 18px 70px; }
+  .detail-hero .pj-hero { aspect-ratio: 4 / 3; }
+}
+@media (max-width: 640px) {
+  .site-shell { width: calc(100% - 8px); margin: 4px auto; }
+  .block-board { padding: 12px; gap: 12px; }
+  .block-card { padding: 20px; }
+  .topbar { padding: 0 14px; gap: 10px; }
+  .brand-name { display: none; }
+  .dlog > div { grid-template-columns: 1fr; gap: 6px; }
+}
+@media (max-width: 640px) {
+  .walker { height: 52px; }
+  .walk-char { height: 46px; }
+  .walk-char img { width: 26px; }
+  .walk-scene { display: none; }
+  .site-shell { margin-bottom: 48px; }
+}
+
+/* ── 등장·호버 모션 (JS 등장 연출은 아래 스크립트, 여기는 호버와 상세 창) ── */
+.proj-cover img { transition: transform .8s cubic-bezier(.16, 1, .3, 1); }
+.proj:hover .proj-cover img { transform: scale(1.06); }
+.mini { transition: transform .3s cubic-bezier(.16, 1, .3, 1), border-color .2s; }
+.mini:hover { transform: translateY(-3px); border-color: rgba(255, 125, 77, .55); }
+.pill:active, .proj:active { transform: scale(.98); }
+.hero-name .ch { display: inline-block; will-change: transform; }
+
+/* 상세 창: 섹션이 스크롤로 들어올 때 한 번씩 올라오며 나타난다 */
+.dsec.rv { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.16, 1, .3, 1), transform .6s cubic-bezier(.16, 1, .3, 1); }
+.dsec.rv.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .dsec.rv { opacity: 1; transform: none; }
+  *, .star-layer, .star-layer::after { animation: none !important; transition-duration: .01ms !important; }
+  /* 씬 전환은 즉시, 시차는 정지. 캐릭터는 진행도 표시라 그대로 둔다 */
+  .scene { transform: none; }
+  .layer { transform: none !important; }
+}
+.fit-t { min-width: 640px; }
+.fit-t td.ddesc { min-width: 220px; line-height: 1.65; }
+.fit-t td.ddesc:last-child { min-width: 150px; }
+</style>
+</head>
+<body>
+
+<!-- ══ 배경 씬 무대 ══
+     이미지를 다 채웠으면 아래 class 에 has-art 한 단어만 추가하세요.
+     예) <div class="scene-stage has-art" aria-hidden="true">           -->
+<div class="scene-stage" id="stage" aria-hidden="true">
+  <div class="scene is-on" data-scene="home">
+    <div class="layer sky"></div>
+    <div class="layer far"><div class="ph far"></div></div>
+    <div class="layer mid"><div class="ph mid"></div></div>
+    <div class="layer near"><div class="ph near"></div></div>
+  </div>
+  <div class="scene" data-scene="gladiator">
+    <div class="layer sky"></div>
+    <div class="layer far"><div class="ph far"></div></div>
+    <div class="layer mid"><div class="ph mid"></div></div>
+    <div class="layer near"><div class="ph near"></div></div>
+  </div>
+  <div class="scene" data-scene="chronicle">
+    <div class="layer sky"></div>
+    <div class="layer far"><div class="ph far"></div></div>
+    <div class="layer mid"><div class="ph mid"></div></div>
+    <div class="layer near"><div class="ph near"></div></div>
+  </div>
+  <div class="scene" data-scene="kingdom">
+    <div class="layer sky"></div>
+    <div class="layer far"><div class="ph far"></div></div>
+    <div class="layer mid"><div class="ph mid"></div></div>
+    <div class="layer near"><div class="ph near"></div></div>
+  </div>
+</div>
+
+<div class="site-shell">
+
+  <header class="topbar">
+    <a class="brand" href="#home">
+      <span class="brand-chip">CS</span>
+      <span class="brand-name">CHO SUNGMIN</span>
+    </a>
+    <nav class="topnav" aria-label="섹션">
+      <a href="#home">Home</a>
+      <a href="#fit">Fit</a>
+      <a href="#projects">Projects</a>
+      <a href="#data">Data</a>
+      <a href="#ai">AI 활용</a>
+      <a href="#clips">Clips</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="top-actions">
+      <a class="pill" href="https://github.com/jsmjsm812" target="_blank" rel="noopener"><span class="dot"></span>GitHub</a>
+      <a class="pill pill-solid" href="#contact">Contact</a>
+    </div>
+  </header>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero" id="home" data-scene="home">
+    <div class="star-layer" aria-hidden="true"></div>
+
+    <div class="hero-copy">
+      <span class="hello">안녕하세요!</span>
+      <h1 class="hero-name">CHO<br><span>SUNGMIN</span></h1>
+      <p class="hero-role"><b>Game</b> Designer</p>
+      <p class="hero-desc">게임을 다섯 개 기획하고 Unity로 직접 만들었습니다. 시스템과 콘텐츠를 설계하고, 테스트 플레이 기록과 시뮬레이션으로 문제를 정의해 수치를 고칩니다. 설계가 실제로 돌아가는지는 직접 구현해서 확인합니다.</p>
+      <div class="hero-tags">
+        <span>System Design</span><span>Balance</span><span>Data</span><span>Docs</span><span>AI Tools</span>
+      </div>
+      <div class="profile">
+        <div class="avatar"><img data-img="dev_character" alt="조성민"></div>
+        <div>
+          <b>조성민 <span class="ready">구직 중</span></b>
+          <span>게임 기획자 · 2026 신입</span>
+          <span class="loc">Asia/Seoul · 즉시 입사 가능</span>
+        </div>
+      </div>
+      <div class="hero-cta">
+        <a class="pill pill-solid" href="#fit">지원 요건과 제 경험</a>
+        <a class="pill" href="#projects">프로젝트 보기</a>
+      </div>
+    </div>
+
+    <div class="hero-art">
+      <div class="art-slot has-char">
+        <img data-img="dev_character" alt="조성민 픽셀아트 캐릭터, 체크 셔츠에 태블릿을 든 개발자">
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══ BOARD ══ -->
+  <div class="block-board">
+
+    <!-- FIT -->
+    <section class="block-card block-wide" id="fit" data-scene="home">
+      <div class="block-head">
+        <span class="block-kicker">REQUIREMENTS</span>
+        <h2>지원 요건과 제 경험</h2>
+        <p>공고의 요건마다 근거가 되는 작업을 연결했습니다. 눌러서 바로 확인할 수 있습니다.</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable fit-t"><thead><tr><th>요건</th><th>제 경험</th><th>근거</th></tr></thead><tbody><tr><td class="dname">모바일 캐주얼 · 하이퍼 캐주얼 게임 기획</td><td class="ddesc">모바일 세로(9:16) 로그라이트 타워디펜스를 혼자 기획했습니다. 전투는 조작 없이 자동으로 진행되고 판단은 20초 준비 시간 안에서만 합니다. 조작이 이동뿐인 서바이벌(메이플 서바이버)도 만들었습니다.</td><td class="ddesc"><button type="button" class="linkbtn" data-open="kingdom">작은 왕국 ▸</button><br><button type="button" class="linkbtn" data-open="maple">메이플 서바이버 ▸</button></td></tr><tr><td class="dname">게임 시스템 기획</td><td class="ddesc">마왕 성장 시스템 전체(스킬 19 · 특성 40 · 증강 30 · 시너지 12)와 재화 구조를 설계했습니다. 작은 왕국에서는 성장 축을 합성 하나로 줄이는 결정을 근거와 함께 남겼습니다.</td><td class="ddesc"><button type="button" class="linkbtn" data-open="mawang">용사 때문에 레벨업 ▸</button><br><button type="button" class="linkbtn" data-open="kingdom">작은 왕국 ▸</button></td></tr><tr><td class="dname">게임 콘텐츠 기획</td><td class="ddesc">수호자 10종 · 침입자 8종 · 구역 3곳의 데이터와 해금 구조(작은 왕국), 어종 18종 · 라이프 아이템 200종 이상 · 스킬 67종(위치 크로니클), 스테이지 6종의 적 구성(라스트 글래디에이터)을 설계했습니다.</td><td class="ddesc"><button type="button" class="linkbtn" data-open="kingdom">작은 왕국 ▸</button><br><button type="button" class="linkbtn" data-open="chronicle">위치 크로니클 ▸</button></td></tr><tr><td class="dname">데이터로 문제를 정의하는 능력</td><td class="ddesc">테스트 결과와 피드백으로 문제를 정의하고 수치를 조정한 기록이 9건 있습니다. 시뮬레이터로 스킬 없이 깰 수 있는 물량 상한을 계산했고, 체감 문제의 원인이 수치가 아니라 타이밍이었음을 재현으로 밝힌 사례도 있습니다.</td><td class="ddesc"><a class="linkbtn" href="#data">데이터 · 문서화 ▾</a></td></tr><tr><td class="dname">분석과 결과의 문서화</td><td class="ddesc">설계 결정을 이유와 함께 기록하고(작은 왕국 6건), 핵심 규칙을 문서에 고정했습니다. 밸런스 시트, 팀 위키 규칙, 증상 · 원인 · 해결 · 검증 형식의 트러블슈팅 기록을 남겼습니다.</td><td class="ddesc"><a class="linkbtn" href="#data">데이터 · 문서화 ▾</a></td></tr><tr><td class="dname">기획부터 개발까지의 과정 (우대)</td><td class="ddesc">다섯 작품을 기획부터 플레이 가능한 빌드까지 완성했습니다. 팀장 2회, 1인 개발 2회, 6주 5인 프로젝트는 STOVE 출시를 앞두고 있습니다(출시 예정).</td><td class="ddesc"><button type="button" class="linkbtn" data-open="mawang">용사 때문에 레벨업 ▸</button></td></tr><tr><td class="dname">AI 프로그램 · 툴 활용 (우대)</td><td class="ddesc">다섯 작품 모두 Claude Code를 썼습니다. 결정과 검증은 직접 하고 구현과 반복 작업을 AI와 나눴으며, 지킨 원칙 4가지와 AI 때문에 실제로 겪은 문제를 그대로 적었습니다.</td><td class="ddesc"><a class="linkbtn" href="#ai">AI 활용 ▾</a></td></tr></tbody></table></div>
+    </section>
+
+    <!-- FEATURED -->
+    <section class="block-card block-wide" id="featured" data-scene="kingdom">
+      <div class="block-head">
+        <span class="block-kicker">FEATURED GAME</span>
+        <h2>대표 게임</h2>
+        <p>가장 먼저 보여주고 싶은 핵심 프로젝트입니다.</p>
+      </div>
+
+      <div class="featured-in">
+        <div>
+          <span class="stove-soon">STOVE 출시 예정</span>
+          <p class="featured-meta">5인 팀 · 2026.09.07 ~ 10.16 · 마왕 성장 시스템 기획 · 밸런스 · 연출 담당</p>
+          <h3>용사 때문에 레벨업</h3>
+          <p>5인 팀으로 6주 동안 만든 역방향 타워 디펜스입니다. 플레이어가 마왕이 되어 쳐들어오는 용사를 마왕군으로 막습니다. 저는 마왕의 스킬·레벨업·특성 트리·증강·시너지로 이루어진 성장 시스템 전체와 재화 구조를 기획하고, 밸런스 시트와 시뮬레이터로 수치를 잡았습니다. 튜토리얼·로딩 화면·웨이브 배너 같은 UX 연출도 기획해 직접 연결했습니다.</p>
+          <div class="tagrow" style="margin-top:16px"><span>System Design</span><span>Economy</span><span>Balance</span><span>UX</span><span>Team</span></div>
+          <div class="featured-points">
+            <div>스킬 19 · 특성 40 · 증강 30 · 시너지 12</div>
+            <div>재화를 처치(LP)와 라운드(SP)로 나눈 이유</div>
+            <div>시트 → 시뮬레이터 → 플레이로 이어지는 밸런스</div>
+            <div>합성 배율 · 물량 곡선 · 쿨감 증강 조정 기록</div>
+          </div>
+          <div class="hero-cta" style="margin-top:20px">
+            <button class="pill pill-solid" type="button" data-open="mawang">자세히 보기</button>
+            <a class="pill" href="https://github.com/OZ-GAME-LAB/OZGL2_1">GitHub 저장소</a>
+          </div>
+        </div>
+        <div class="pj-hero pj-hero-clean" style="border-radius:var(--card-radius);border:1px solid var(--line);aspect-ratio:16/9">
+          <img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트, 마왕성 성벽 위의 마왕과 마왕군, 몰려오는 용사들">
+          <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="block-card block-wide" id="projects" data-scene="gladiator">
+      <div class="block-head">
+        <span class="block-kicker">STAGE SELECT</span>
+        <h2>PROJECTS</h2>
+        <p>게임 기획 사례와 구현 기록</p>
+      </div>
+
+      <div class="filters" role="group" aria-label="프로젝트 필터">
+        <button type="button" data-filter="all" aria-pressed="true">전체</button>
+        <button type="button" data-filter="solo" aria-pressed="false">1인 개발</button>
+        <button type="button" data-filter="team" aria-pressed="false">팀 프로젝트</button>
+      </div>
+
+      <div class="proj-grid">
+        <button class="proj" type="button" data-cat="team" data-open="mawang">
+          <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
+            <img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트">
+            <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
+          </div>
+          <div class="proj-body">
+            <span class="stove-soon">STOVE 출시 예정</span>
+            <h4>용사 때문에 레벨업</h4>
+            <p>5인 팀으로 만든 역방향 타워 디펜스입니다. 마왕 성장 시스템 전체(스킬·특성 40·증강 30·시너지 12)와 재화 구조를 기획하고, 시트에서 시작하는 밸런스 파이프라인과 UX 연출까지 맡았습니다.</p>
+            <span class="proj-role">5인 팀 · 2026.09.07 ~ 10.16</span>
+            <div class="tagrow"><span>System Design</span><span>Balance</span><span>UX</span><span>Team</span></div>
+            <div class="proj-facts"><span>▶ 플레이 영상</span><span>AI · Claude Code</span></div>
+            <span class="proj-open">자세히 보기 ▸</span>
+          </div>
+        </button>
+        <button class="proj" type="button" data-cat="solo" data-open="kingdom">
+          <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
+            <img data-img="kingdom_title" alt="작은 왕국 타이틀 아트" style="object-position:center 22%">
+            <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
+          </div>
+          <div class="proj-body">
+            <h4>작은 왕국</h4>
+            <p>모바일 세로 로그라이트 타워디펜스를 혼자 기획하고 만들었습니다. 레벨업 없이 합성만으로 성장하는 구조, 4칸 상점, 구역 3곳, 수호자 10종 데이터까지 설계 결정 여섯 개를 이유와 함께 기록했고, 밸런스 조정 이력이 가장 자세히 남아 있습니다.</p>
+            <span class="proj-role">1인 개발 · 모바일 · 2026.08.25 ~ 09.06</span>
+            <div class="tagrow"><span>Mobile</span><span>Core Loop</span><span>Data Design</span><span>Balance</span></div>
+            <div class="proj-facts"><span>▶ 플레이 영상</span><span>AI · Claude Code</span></div>
+            <span class="proj-open">자세히 보기 ▸</span>
+          </div>
+        </button>
+
+        <button class="proj" type="button" data-cat="team" data-open="gladiator">
+          <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
+            <img data-img="lg_title" alt="라스트 글래디에이터 타이틀 화면">
+            <span class="badge-2d" style="left:14px;top:14px;transform:none">3D</span>
+          </div>
+          <div class="proj-body">
+            <h4>라스트 글래디에이터</h4>
+            <p>2인 팀 프로젝트입니다. 팀장을 맡아 컨셉과 전투 규칙, 스테이지 밸런싱을 기획했고, 패링 판정 창 0.2초의 근거와 4주 안에 끝내기 위한 범위 축소 결정을 남겼습니다.</p>
+            <span class="proj-role">2인 팀 · 팀장 · 2026.05.28 ~ 06.26</span>
+            <div class="tagrow"><span>Combat Rules</span><span>Enemy Design</span><span>Scope</span><span>Team</span></div>
+            <div class="proj-facts"><span>▶ 플레이 영상</span><span>AI · Claude Code</span></div>
+            <span class="proj-open">자세히 보기 ▸</span>
+          </div>
+        </button>
+
+        <button class="proj" type="button" data-cat="team" data-open="chronicle">
+          <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
+            <img data-img="wc_title" alt="위치 크로니클 타이틀 아트">
+            <span class="badge-2d" style="left:14px;top:14px;transform:none">3D</span>
+          </div>
+          <div class="proj-body">
+            <h4>위치 크로니클</h4>
+            <p>5인 팀장으로 만든 3D 라이프 시뮬레이션입니다. 세계관과 전체 기획, 6속성 전투 규칙을 설계했고, 방치 농사·낚시·연금술 시스템과 스킬 데이터 67종을 직접 만들었습니다.</p>
+            <span class="proj-role">5인 팀 · 팀장 · 2026.06.29 ~ 08.14</span>
+            <div class="tagrow"><span>World</span><span>Life Sim</span><span>Data</span><span>Team</span></div>
+            <div class="proj-facts"><span>▶ 플레이 영상</span><span>AI · Claude Code</span></div>
+            <span class="proj-open">자세히 보기 ▸</span>
+          </div>
+        </button>
+        <button class="proj" type="button" data-cat="solo" data-open="maple">
+          <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
+            <img data-img="maple_title" alt="메이플 서바이버 타이틀 화면">
+            <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
+          </div>
+          <div class="proj-body">
+            <h4>메이플 서바이버</h4>
+            <p>메이플스토리 몬스터를 소재로 한 1인 개발 웨이브 서바이벌입니다. 이동만 직접 하고 무기는 자동 발사되는 구조에서 무기 구매·결합 상점, 레벨업 능력치 3택 1, 캐릭터 해금, 보스 2종을 설계했습니다.</p>
+            <span class="proj-role">1인 개발 · PC · 2026.04</span>
+            <div class="tagrow"><span>Wave Survival</span><span>Shop</span><span>Unlock</span><span>Solo</span></div>
+            <div class="proj-facts"><span>▶ 플레이 영상</span><span>AI · Claude Code</span></div>
+            <span class="proj-open">자세히 보기 ▸</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- DATA -->
+    <section class="block-card block-wide" id="data" data-scene="chronicle">
+      <div class="block-head">
+        <span class="block-kicker">DATA &amp; DOCS</span>
+        <h2>데이터로 문제를 정의하고, 문서로 남깁니다</h2>
+        <p>출시 전 프로젝트라 라이브 서비스 데이터(구글 애널리틱스 등)는 다뤄 보지 못했습니다. 대신 테스트 플레이 기록과 시뮬레이션 값으로 문제를 정의했고, 조정 이력을 전부 남겼습니다.</p>
+      </div>
+
+      <p style="font-size:16px;color:var(--text);font-weight:700;margin:26px 0 8px;margin-top:4px">문제를 정의한 세 가지 사례</p>
+      <div class="dcase"><span class="dcase-tag balance">작은 왕국</span><h4>“몹이 안 죽어 보인다”의 원인은 수치가 아니었습니다</h4><dl class="dlog"><div><dt>증상</dt><dd>몹이 안 죽어 보인다는 피드백이 있었습니다.</dd></div><div><dt>첫 가설</dt><dd>체력바 갱신 방식을 두 번 바꾸고 몬스터 HP를 최대 10배까지 올렸지만 증상이 그대로였습니다.</dd></div><div><dt>재정의</dt><dd>밸런스가 아니라 타이밍 문제였습니다. 준비 시간 동안 공격 타이머가 계속 쌓여서, 웨이브가 열리는 순간 전원이 같은 프레임에 동시 발사하고 있었습니다.</dd></div><div><dt>해결</dt><dd>배치 시점에 타이머를 쿨다운 범위 안 무작위값으로 흩어 놓았습니다. 상향한 HP 곡선은 그대로 유지했습니다.</dd></div></dl></div>
+      <div class="dcase"><span class="dcase-tag balance">용사 때문에 레벨업</span><h4>초반 런에서 스킬 해금이 체감되지 않음</h4><dl class="dlog"><div><dt>발견</dt><dd>스킬 해금 재화(SP)를 10라운드마다만 줬더니, 초반 런에서 해금 체감이 없다는 테스트 결과가 나왔습니다.</dd></div><div><dt>조정</dt><dd>2라운드마다 잘게 나눠 지급하도록 바꿨습니다.</dd></div><div><dt>근거</dt><dd>SP는 얼마나 멀리 갔나(라운드)를 보상하는 재화라서, 진행하는 동안 해금이 일어나는 것이 체감돼야 했습니다.</dd></div></dl></div>
+      <div class="dcase"><span class="dcase-tag balance">용사 때문에 레벨업</span><h4>합성할수록 눈덩이처럼 강해지는 문제</h4><dl class="dlog"><div><dt>발견</dt><dd>같은 성급 2기를 합치면 1기가 되는데, 2성 배율이 ×2.1이라 합성 전 두 기의 합보다 강했습니다. 합성만 반복하면 후반이 너무 쉬웠습니다.</dd></div><div><dt>조정</dt><dd>2성 ×2.1 → ×1.7, 3성 ×4.5 → ×3.2. 합성은 칸을 아끼는 대신 순수 전투력은 조금 손해 보는 선택이 되도록 했습니다.</dd></div></dl></div>
+
+      <p style="font-size:16px;color:var(--text);font-weight:700;margin:26px 0 8px">분석에 쓴 도구</p>
+      <div class="dcards">
+        <div><b>밸런스 시트</b><span>라운드 표 · 전투 공식 · 유닛 스탯의 원본 (용사 때문에 레벨업)</span></div>
+        <div><b>생성기 (Python)</b><span>시트를 읽어 난이도 3종 스테이지 에셋, 라운드 배율 CSV, 테스트 씬 3개를 만듭니다</span></div>
+        <div><b>전투 시뮬레이터</b><span>체력·공격·공속·방어·사거리·광역 스탯으로 스킬 없이 이 물량을 깰 수 있는지 계산합니다</span></div>
+        <div><b>물량 자동 튜너</b><span>시뮬레이터로 라운드별 물량을 이분 탐색해 시트에 다시 씁니다</span></div>
+        <div><b>전투 기록 CSV</b><span>테스트 루프 씬에서 배속으로 돌리며 전투 기록을 CSV로 남깁니다</span></div>
+        <div><b>DPS 기댓값 표</b><span>특수효과 확률을 반영한 기준 표로, 구현이 이 수치대로 동작하는지 점검했습니다 (작은 왕국)</span></div>
+      </div>
+
+      <p style="font-size:16px;color:var(--text);font-weight:700;margin:26px 0 8px">BALANCE LOG · 조정 기록 9건</p>
+      <p style="font-size:13.5px;color:var(--text-3);margin:0 0 4px">숫자를 감으로 정하지 않았다는 근거입니다. 같은 수치를 두 번 바꾸거나 되돌린 경우도 그대로 적었습니다.</p>
+      <div class="dtable-wrap"><table class="dtable fit-t"><thead><tr><th>작품</th><th>문제 · 계기</th><th>조정</th></tr></thead><tbody><tr><td class="dname">용사 레벨업</td><td class="ddesc"><b style="color:var(--text)">합성할수록 눈덩이처럼 강해짐</b><br>2성 배율이 ×2.1이라 같은 성급 2기를 합친 1기가 합치기 전 두 기의 합보다 강했고, 합성만 반복하면 후반이 너무 쉬웠습니다.</td><td class="ddesc">2성 ×2.1 → ×1.7, 3성 ×4.5 → ×3.2. 합성은 칸을 아끼는 대신 순수 전투력은 조금 손해 보는 선택이 되도록 했습니다.</td></tr><tr><td class="dname">용사 레벨업</td><td class="ddesc"><b style="color:var(--text)">16라운드까지 용사가 강해지지 않음</b><br>물량이 상한에 닿기 전까지 용사 체력을 고정한 곡선이어서 초중반 내내 용사가 그대로라는 피드백을 받았습니다.</td><td class="ddesc">라운드마다 오르는 체력·공격 곡선을 직접 지정하고, 물량은 그 스탯에서 스킬 없이 깨지는 최대치를 자동으로 찾게 했습니다. 플레이로 확인한 1·2라운드 물량은 고정했습니다.</td></tr><tr><td class="dname">용사 레벨업</td><td class="ddesc"><b style="color:var(--text)">처치 시 쿨타임 감소 증강이 너무 강함</b><br>처형·학살 재충전 증강을 고르면 용사가 몰려오는 후반에 스킬을 쉬지 않고 쓸 수 있었습니다.</td><td class="ddesc">처치당 감소량 −1초 → −0.3초, −2.5초 → −0.8초. 대신 마왕 레벨당 스킬 피해 +4%를 붙여 성장과 스킬 체감을 연결했습니다.</td></tr><tr><td class="dname">용사 레벨업</td><td class="ddesc"><b style="color:var(--text)">초반 런에서 스킬 해금 체감이 없음</b><br>SP를 10라운드마다만 줬더니 초반 런에서 해금이 일어나지 않았습니다.</td><td class="ddesc">2라운드마다 잘게 나눠 지급하도록 변경.</td></tr><tr><td class="dname">작은 왕국</td><td class="ddesc"><b style="color:var(--text)">슬롯 22칸 설계가 과함</b><br>22칸 설계를 17칸으로 줄이면서 화력이 줄었습니다.</td><td class="ddesc">22칸 → 17칸. 줄어든 화력을 보전하려 웨이브 클리어 보상을 30 → 35로 상향.</td></tr><tr><td class="dname">작은 왕국</td><td class="ddesc"><b style="color:var(--text)">“몹이 안 죽어 보인다”</b><br>HP를 두 차례 크게 올렸지만 진짜 원인은 전원 동시 발사 타이밍이었습니다.</td><td class="ddesc">고블린 HP 20 → 110까지 상향. 원인을 고친 뒤에도 상향된 HP 곡선은 유지했습니다.</td></tr><tr><td class="dname">작은 왕국</td><td class="ddesc"><b style="color:var(--text)">1구역 난이도 피드백이 뒤집힘</b><br>쉽다는 피드백으로 올렸는데 슬롯 축소·소환가 개편이 겹치면서 반대 피드백이 나왔습니다.</td><td class="ddesc">HP 배율 ×1.0 → ×1.15 → ×1.0 원복.</td></tr><tr><td class="dname">작은 왕국</td><td class="ddesc"><b style="color:var(--text)">잠금 캐릭터가 값어치를 못 함</b><br>“가격은 더 싸게, 능력은 더 좋게” 방향으로 6종 전원을 다시 조정했습니다.</td><td class="ddesc">공격력 평균 +15~20%, 가격 전원 인하 (연금술사 110 → 90).</td></tr><tr><td class="dname">작은 왕국</td><td class="ddesc"><b style="color:var(--text)">잡아도 골드가 체감되지 않음</b><br>개별 처치 보상의 존재감이 약한 게 원인이라고 판단했습니다.</td><td class="ddesc">전 개체 처치 보상 약 2 ~ 2.5배 상향.</td></tr></tbody></table></div>
+
+      <p style="font-size:16px;color:var(--text);font-weight:700;margin:26px 0 8px">문서화</p>
+      <div class="dcards">
+        <div><b>설계 결정 기록</b><span>작은 왕국의 설계 결정 6가지를 의도와 이유까지 함께 기록했습니다</span></div>
+        <div><b>규칙 문서 (CLAUDE.md)</b><span>핵심 결정을 문서에 고정해, 맥락이 끊겨도 같은 논쟁을 반복하지 않게 했습니다</span></div>
+        <div><b>팀 위키 규칙</b><span>위치 크로니클의 ‘필드 추가는 소유자 협의 후’ 파일 소유권 규칙</span></div>
+        <div><b>조정 이력</b><span>각 작품 상세의 밸런싱 항목에 관찰 → 조정을 남겼습니다</span></div>
+        <div><b>트러블슈팅 기록</b><span>증상 · 원인 · 해결 · 검증 형식으로 정리했습니다</span></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="block-card" id="about" data-scene="home">
+      <div class="block-head">
+        <span class="block-kicker">PLAYER INFO</span>
+        <h2>재미의 구조를 설계하고 수치로 확인하는 기획자</h2>
+        <p>시스템과 콘텐츠를 설계하고, 설계가 실제로 돌아가는지 Unity로 직접 만들어 확인합니다.</p>
+      </div>
+
+      <div class="mini-grid">
+        <div class="mini">
+          <div class="icon-sq">01</div>
+          <b>재미부터 정의한다</b>
+          <span>패링의 0.2초, 합성이 터지는 순간. 재미의 단위를 먼저 정하고 규칙과 수치를 설계합니다.</span>
+        </div>
+        <div class="mini">
+          <div class="icon-sq">02</div>
+          <b>결정은 이유와 함께 남긴다</b>
+          <span>무엇을 뺄지까지 정하고 이유를 기록합니다. 작은 왕국의 설계 결정 6가지가 그 예입니다.</span>
+        </div>
+        <div class="mini">
+          <div class="icon-sq">03</div>
+          <b>범위를 줄여 완주</b>
+          <span>미완성 기능 열 개보다 끝까지 다듬은 하나가 결과를 만든다고 생각합니다.</span>
+        </div>
+        <div class="mini">
+          <div class="icon-sq">04</div>
+          <b>수치는 플레이로 확인한다</b>
+          <span>시뮬레이터로 상한을 잡고 마지막은 직접 플레이로 확인합니다. 피드백이 오면 되돌린 기록도 남깁니다.</span>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><b>5</b><span>완주 프로젝트</span></div>
+        <div class="stat"><b>2</b><span>팀장 경험</span></div>
+        <div class="stat"><b>9</b><span>밸런스 조정 기록</span></div>
+        <div class="stat"><b>3</b><span>직접 만든 밸런스 도구</span></div>
+      </div>
+
+      <ul class="log-list" style="margin-top:18px">
+        <li><i>▸</i><span><b>학력</b> 청운대학교 (호텔조리식당경영학과 · 복수전공 멀티미디어학과, 2020~2026)</span></li>
+        <li><i>▸</i><span><b>교육</b> 넥스트러너스 게임개발 초격차 캠프 5기 수료 (2026.02~08)</span></li>
+        <li><i>▸</i><span><b>AI 활용</b> Claude Code로 구현하고, 결정과 검증은 직접 합니다. <a class="linkbtn" href="#ai">어떻게 썼는지 보기 ▸</a></span></li>
+      </ul>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="block-card" id="skills" data-scene="home">
+      <div class="block-head">
+        <span class="block-kicker">LOADOUT</span>
+        <h2>기획 도구와 구현 범위</h2>
+        <p>기획에 쓴 도구와, 설계를 검증하려고 직접 구현한 범위입니다.</p>
+      </div>
+
+      <div class="mini-grid">
+        <div class="mini"><b>밸런스 시트</b><span>라운드 · 전투 공식 · 유닛 스탯의 원본</span></div>
+        <div class="mini"><b>Python</b><span>시트에서 스테이지 데이터와 물량 생성</span></div>
+        <div class="mini"><b>전투 시뮬레이터</b><span>스킬 없이 깰 수 있는 물량 상한 계산</span></div>
+        <div class="mini"><b>설계 문서</b><span>설계 결정 · 규칙 · 트러블슈팅 기록</span></div>
+        <div class="mini"><b>Unity 6 · C#</b><span>기획 검증용 프로토타입 구현</span></div>
+        <div class="mini"><b>ScriptableObject</b><span>수치를 코드에서 분리한 데이터 설계</span></div>
+      </div>
+
+      <ul class="log-list" style="margin-top:22px">
+        <li><i>▸</i><span><b>팀 리드</b> 2인 프로젝트, 5인 프로젝트 팀장</span></li>
+        <li><i>▸</i><span><b>1인 개발</b> 기획부터 데이터, 툴, 아트 파이프라인까지</span></li>
+        <li><i>▸</i><span><b>AI 툴</b> Claude Code (다섯 작품 전부)</span></li>
+        <li><i>▸</i><span><b>플랫폼</b> PC 3종, 모바일 세로 1종</span></li>
+      </ul>
+    </section>
+
+
+    <!-- AI -->
+    <section class="block-card block-wide" id="ai" data-scene="home">
+      <div class="block-head">
+        <span class="block-kicker">AI WORKFLOW</span>
+        <h2>AI 활용</h2>
+        <p>AI 툴을 어디까지 맡기고 어디서 직접 확인했는지를 그대로 적었습니다.</p>
+      </div>
+      <div id="ai-body"></div>
+    </section>
+
+    <!-- CLIPS -->
+    <section class="block-card block-wide" id="clips" data-scene="kingdom">
+      <div class="block-head">
+        <span class="block-kicker">PLAY CLIPS</span>
+        <h2>CLIPS</h2>
+        <p>플레이 장면을 짧게 이어 붙인 움짤입니다. 카드를 누르면 게임별 영상을 더 자세히 볼 수 있습니다.</p>
+      </div>
+      <div class="clip-grid">
+        <button class="clipcard" type="button" data-open="mawang">
+          <div class="cbox"><img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트"><video class="loopv" muted loop playsinline preload="none" data-src="video/mawang_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbody"><h4>용사 때문에 레벨업</h4><p>마왕이 되어 쳐들어오는 용사를 막는 역방향 타워 디펜스</p><span class="proj-open">영상 더 보기 ▸</span></div>
+        </button>
+        <button class="clipcard" type="button" data-open="kingdom">
+          <div class="cbox tallsrc"><img data-img="kingdom_title" alt="작은 왕국 타이틀 아트"><video class="loopv" muted loop playsinline preload="none" data-src="video/kingdom_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbody"><h4>작은 왕국</h4><p>수호자를 배치·합성해 웨이브를 막는 모바일 타워디펜스</p><span class="proj-open">영상 더 보기 ▸</span></div>
+        </button>
+        <button class="clipcard" type="button" data-open="gladiator">
+          <div class="cbox"><img data-img="lg_title" alt="라스트 글래디에이터 타이틀 아트"><video class="loopv" muted loop playsinline preload="none" data-src="video/gladiator_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbody"><h4>라스트 글래디에이터</h4><p>스킬·가드·KillCam이 있는 3D 액션 로그라이크</p><span class="proj-open">영상 더 보기 ▸</span></div>
+        </button>
+        <button class="clipcard" type="button" data-open="chronicle">
+          <div class="cbox"><img data-img="wc_title" alt="위치 크로니클 타이틀 아트"><video class="loopv" muted loop playsinline preload="none" data-src="video/chronicle_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbody"><h4>위치 크로니클</h4><p>파밍·낚시·연금술과 턴제 전투의 3D 라이프 시뮬레이션</p><span class="proj-open">영상 더 보기 ▸</span></div>
+        </button>
+        <button class="clipcard" type="button" data-open="maple">
+          <div class="cbox"><img data-img="maple_title" alt="메이플 서바이버 타이틀 화면"><video class="loopv" muted loop playsinline preload="none" data-src="video/maple_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbody"><h4>메이플 서바이버</h4><p>무기를 사고 합치며 20웨이브를 버티는 웨이브 서바이벌</p><span class="proj-open">영상 더 보기 ▸</span></div>
+        </button>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="block-card block-wide" id="contact" data-scene="chronicle">
+      <div class="block-head">
+        <span class="block-kicker">QUEST BOARD</span>
+        <h2>CONTACT</h2>
+        <p><b style="color:var(--text)">게임 기획자 신입 포지션으로 지원 중입니다.</b> 이력서·포트폴리오 원본, 코드 저장소 접근 권한이 필요하시면 메일 주시면 바로 보내드리겠습니다.</p>
+      </div>
+
+      <dl class="hire-facts">
+        <div><dt>지원 포지션</dt><dd>게임 기획자 (모바일 캐주얼 · 시스템 · 콘텐츠) · 데이터 분석 · Unity로 프로토타입 제작 가능</dd></div>
+        <div><dt>입사 가능 시기</dt><dd>즉시</dd></div>
+        <div><dt>완성 프로젝트</dt><dd>5편 (팀장 2회 · 1인 개발 2회 · 팀원 1회)</dd></div>
+      </dl>
+
+      <div class="contact-grid">
+        <a href="mailto:jsmjsm812@gmail.com">
+          <span class="k">EMAIL</span><span class="v">jsmjsm812@gmail.com</span>
+        </a>
+        <a href="https://github.com/jsmjsm812" target="_blank" rel="noopener">
+          <span class="k">GITHUB</span><span class="v">github.com/jsmjsm812</span>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="site-foot">
+    <span>CHO SUNGMIN</span>
+    <span>GAME DESIGNER</span>
+  </footer>
+</div>
+
+<!-- ══ 스크롤 워커 — 위치 크로니클 "아리엘" ══ -->
+<div class="walker" id="walker" aria-hidden="true">
+  <div class="walk-track" id="walk-track"></div>
+  <div class="walk-char" id="walk-char">
+    <img data-img="ariel_walker" alt="">
+  </div>
+  <div class="walk-scene">NOW IN <b id="walk-label">ROOT</b></div>
+</div>
+
+<!-- ══ 프로젝트 상세 ══ -->
+<div class="overlay" id="overlay" hidden>
+  <div class="project-detail" role="dialog" aria-modal="true" aria-labelledby="d-title">
+    <aside class="detail-menu">
+      <p class="dt" id="d-title"></p>
+      <p class="ds" id="d-sub"></p>
+      <nav id="d-nav" aria-label="상세 목차"></nav>
+    </aside>
+    <div class="detail-content" id="d-scroll">
+      <button class="icon-close" id="d-close" type="button" aria-label="닫기">×</button>
+      <div id="d-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var GAME_IMG = {
+  maple_title: "img/maple_title.webp",
+  maple_weapon: "img/maple_weapon.webp",
+  maple_levelup: "img/maple_levelup.webp",
+  maple_shop: "img/maple_shop.webp",
+  maple_battle: "img/maple_battle.webp",
+  maple_boss: "img/maple_boss.webp",
+  maple_clear: "img/maple_clear.webp",
+  ariel_walker: "img/ariel_walker.webp",
+  dev_character: "img/dev_character.webp",
+  kingdom_title: "img/kingdom_title.webp",
+  kingdom_lobby: "img/kingdom_lobby.webp",
+  kingdom_prep: "img/kingdom_prep.webp",
+  kingdom_battle: "img/kingdom_battle.webp",
+  kingdom_battle_wave10: "img/kingdom_battle_wave10.webp",
+  kingdom_result_clear: "img/kingdom_result_clear.webp",
+  kingdom_codex: "img/kingdom_codex.webp",
+  kingdom_codex_detail: "img/kingdom_codex_detail.webp",
+  kingdom_shop: "img/kingdom_shop.webp",
+  wc_farming: "img/wc_farming.webp",
+  lg_guard: "img/lg_guard.webp",
+  wc_seed: "img/wc_seed.webp",
+  lg_killcam: "img/lg_killcam.webp",
+  lg_stage1: "img/lg_stage1.webp",
+  wc_title: "img/wc_title.webp",
+  mawang_title: "img/mawang_title_v2.webp",
+  lg_combat_fire: "img/lg_combat_fire.webp",
+  lg_combat_slash: "img/lg_combat_slash.webp",
+  wc_fishing_success: "img/wc_fishing_success.webp",
+  lg_title: "img/lg_title.webp",
+  wc_harvest: "img/wc_harvest.webp",
+  wc_fishing: "img/wc_fishing.webp",
+  wc_cooking: "img/wc_cooking.webp"
+};
+</script>
+<script>
+/* 프로젝트 상세 데이터. 기존 포트폴리오에 적힌 실제 작업 내용만 사용하고,
+   실제 코드에 있는지 확인되지 않은 클래스 이름은 지어내지 않는다. */
+var PROJECTS = {
+  maple: {
+    title: 'MAPLE\nSURVIVOR', name: '메이플 서바이버', sub: '1인 개발 · 웨이브 서바이벌 · 2026.04',
+    keyArt: 'maple_title', keyArtRatio: '16/9',
+    tagline: '메이플스토리 몬스터로 20웨이브를 버티는 웨이브 서바이벌. 무기를 사고 합치며 성장',
+    intro: '브로타토에서 영감을 받아 혼자 만든 PC 웨이브 서바이벌입니다. 몬스터 캐릭터를 조종해 밀려오는 적을 막고, 웨이브 사이 상점에서 무기를 사고 결합하며 20웨이브를 클리어하는 것이 목표입니다. 레벨업 능력치 선택, 무기 발사 방식 5종, 보스 2종, 캐릭터 해금까지 한 사람이 구현했습니다.',
+    spec: [['기간','2026.04 (빌드 4.26 · 저장소 4.30)'],['엔진','Unity 6 (6000.3.9f1) · C#'],['플랫폼','PC (Windows 빌드)'],['시점','2D 탑뷰'],['팀','1인 개발'],['빌드','github.com/jsmjsm812/Maple-Survivor_jsm']],
+    sections: [
+      { id:'about', icon:'01', label:'게임 소개', html:
+        '<p>메이플스토리의 몬스터를 소재로 한 <b>웨이브 서바이벌</b>입니다. 브로타토에서 영감을 받았고, 플레이어는 몬스터 캐릭터를 조종해 밀려오는 적을 막으며 <b>20웨이브를 클리어</b>하는 것이 목표입니다.</p>' +
+        '<p>이동만 직접 하고 무기는 자동으로 발사됩니다. 웨이브마다 정해진 시간을 버티면 상점으로 넘어가 무기를 사고 합치고 강화한 뒤 다음 웨이브를 시작합니다.</p>' },
+      { id:'loop', icon:'02', label:'게임 방법', html:
+        '<div class="dpanel"><h4>CORE LOOP</h4><div class="dsteps"><div class="dstep"><span class="n">01</span><b>캐릭터 선택</b><span>기본 캐릭터는 주황버섯이고, 클리어하면 두 번째 캐릭터가 해금됩니다</span></div><div class="dstep"><span class="n">02</span><b>시작 무기 선택</b><span>10종 중 하나를 골라 시작</span></div><div class="dstep"><span class="n">03</span><b>웨이브 전투</b><span>이동만 직접 하고 무기는 자동 발사</span></div><div class="dstep"><span class="n">04</span><b>경험치 젬</b><span>처치한 적이 떨어뜨린 젬을 먹어 경험치 획득</span></div><div class="dstep"><span class="n">05</span><b>레벨업</b><span>능력치 3개 중 하나를 골라 강화</span></div><div class="dstep"><span class="n">06</span><b>상점</b><span>웨이브가 끝나면 무기를 사고 결합하고 강화</span></div><div class="dstep"><span class="n">07</span><b>20웨이브 클리어</b><span>정해진 시간을 버티며 마지막 보스까지</span></div></div></div>' },
+      { id:'clips', icon:'▶', label:'플레이 영상', html:
+        '<div class="dgallery dvids"><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_1.mp4" style="aspect-ratio:16 / 9" aria-label="시작 · 옵션 소리 조절, 캐릭터 선택과 시작 무기 선택"></video><figcaption>시작 · 옵션 소리 조절, 캐릭터 선택과 시작 무기 선택</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_2.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 1 · 자동 발사, 경험치 젬, 레벨업 능력치 선택과 툴팁"></video><figcaption>웨이브 1 · 자동 발사, 경험치 젬, 레벨업 능력치 선택과 툴팁</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_3.mp4" style="aspect-ratio:16 / 9" aria-label="상점 · 무기 구매와 결합, 웨이브 4 전투"></video><figcaption>상점 · 무기 구매와 결합, 웨이브 4 전투</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_4.mp4" style="aspect-ratio:16 / 9" aria-label="무기를 6개까지 장착하며 몰려오는 적 막기 · 웨이브 7"></video><figcaption>무기를 6개까지 장착하며 몰려오는 적 막기 · 웨이브 7</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_5.mp4" style="aspect-ratio:16 / 9" aria-label="대시 공격과 중간 보스 베이비 발록 · 웨이브 10, 15"></video><figcaption>대시 공격과 중간 보스 베이비 발록 · 웨이브 10, 15</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_6.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 19 · 몰려오는 적과 범위 공격 표시"></video><figcaption>웨이브 19 · 몰려오는 적과 범위 공격 표시</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_7.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 20 · 최종 보스 주니어 발록"></video><figcaption>웨이브 20 · 최종 보스 주니어 발록</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/maple_8.mp4" style="aspect-ratio:16 / 9" aria-label="클리어 · 타이틀로 돌아가 두 번째 캐릭터로 다시 시작"></video><figcaption>클리어 · 타이틀로 돌아가 두 번째 캐릭터로 다시 시작</figcaption></figure></div>' +
+        '<p style="margin-top:10px;font-size:12.5px;color:var(--text-3)">웨이브를 빠르게 넘긴 구간은 잘라 내고 정상 속도로 플레이한 구간만 이어 붙였습니다. 웨이브 번호가 건너뛰는 곳이 편집 지점입니다.</p>' },
+      { id:'system', icon:'03', label:'구현한 것', html:
+        '<p>공개한 것은 Windows 빌드이고, 아래는 직접 플레이한 영상과 빌드에 들어 있는 구성 요소를 기준으로 적었습니다.</p>' +
+        '<div class="dcards">' +
+        '<div><b>웨이브 진행</b><span>웨이브마다 제한 시간과 적 생성 간격이 정해져 있고, 끝나면 상점 화면으로 넘어갔다가 다음 웨이브를 시작합니다. 웨이브 10에는 베이비 발록, 웨이브 20에는 주니어 발록이 나옵니다</span></div>' +
+        '<div><b>무기</b><span>시작 무기 10종. 기본·레이저·로켓·샷건·저격처럼 발사 방식이 다른 무기를 자동으로 쏘고, 최대 6개까지 장착합니다. 티어에 따라 피해가 달라집니다</span></div>' +
+        '<div><b>상점</b><span>무기 구매·판매·새로고침·결합. 웨이브마다 파는 무기와 티어가 무작위로 나옵니다</span></div>' +
+        '<div><b>레벨업과 능력치</b><span>레벨업 때 능력치 3개 중 하나를 선택. 최대 HP·HP 재생·흡혈·공격력·공격 속도·치명타 확률·사거리·방어력·회피·이동 속도·수확 11종을 올리고, 마우스를 올리면 툴팁이 뜹니다</span></div>' +
+        '<div><b>캐릭터 해금</b><span>첫 캐릭터로 클리어하면 두 번째 캐릭터가 열리는 해금 구조입니다</span></div>' +
+        '<div><b>옵션·저장·사운드</b><span>일시정지(ESC)와 옵션 창, 배경음·효과음·무기 효과음 볼륨 조절, PlayerPrefs 저장</span></div>' +
+        '</div>' },
+      { id:'shots', icon:'04', label:'화면', html:
+        '<div class="dgallery"><figure class="rshot"><img data-img="maple_title" alt="타이틀 화면" loading="lazy"><figcaption>타이틀 화면</figcaption></figure><figure class="rshot"><img data-img="maple_weapon" alt="시작 무기 선택. 기본 능력치와 무기 설명을 바로 확인" loading="lazy"><figcaption>시작 무기 선택. 기본 능력치와 무기 설명을 바로 확인</figcaption></figure><figure class="rshot"><img data-img="maple_levelup" alt="레벨업 능력치 3택 1과 현재 능력치 패널" loading="lazy"><figcaption>레벨업 능력치 3택 1과 현재 능력치 패널</figcaption></figure><figure class="rshot"><img data-img="maple_shop" alt="웨이브 사이 상점. 무기 구매와 잠금, 새로고침, 보유 무기 칸" loading="lazy"><figcaption>웨이브 사이 상점. 무기 구매와 잠금, 새로고침, 보유 무기 칸</figcaption></figure><figure class="rshot"><img data-img="maple_battle" alt="웨이브 7 전투. 무기 여러 개가 동시에 자동 발사" loading="lazy"><figcaption>웨이브 7 전투. 무기 여러 개가 동시에 자동 발사</figcaption></figure><figure class="rshot"><img data-img="maple_boss" alt="웨이브 20 최종 보스 주니어 발록과 체력바" loading="lazy"><figcaption>웨이브 20 최종 보스 주니어 발록과 체력바</figcaption></figure><figure class="rshot"><img data-img="maple_clear" alt="웨이브 20 클리어 화면" loading="lazy"><figcaption>웨이브 20 클리어 화면</figcaption></figure></div>' },
+      { id:'role', icon:'05', label:'내 담당과 밝혀 둘 것', html:
+        '<div class="dsplit"><div><h5>내가 한 것</h5><ul><li><b>1인 개발</b>: 기획, 구현, 밸런스, 빌드, 시연 영상까지 혼자 진행</li><li><b>전투·성장 구현</b>: 자동 발사 무기, 웨이브·보스, 레벨업 능력치, 상점, 캐릭터 해금</li><li><b>UI와 사운드 연동</b>: 상점·레벨업 패널, 툴팁, 볼륨 조절</li></ul></div>' +
+        '<div><h5>밝혀 둘 것</h5><ul><li>메이플스토리의 몬스터를 소재로 삼았습니다</li><li>맵 타일과 소품 일부는 외부 에셋 패키지를 썼습니다</li><li>공개 저장소에는 Windows 빌드와 소개 파일만 있고, 소스 코드는 올라와 있지 않습니다</li><li>구현에 Claude Code를 썼습니다</li></ul></div></div>' }
+    ]
+  },
+  kingdom: {
+    title: 'TINY\nKINGDOM', name: '작은 왕국', sub: '1인 개발 · 2026.08.25 ~ 09.06',
+    keyArt: 'kingdom_title',
+    tagline: '랜덤 소환과 자동 합성으로 성장하는 롤토체스식 준비/전투 루프의 세로형 로그라이트 타워디펜스',
+    intro: '기획부터 데이터, 툴, 아트 파이프라인까지 혼자 굴린 모바일(Android) 세로 프로젝트입니다. 배치와 합성으로 판을 짜는 준비 시간(20초)이 재미의 중심이고, 전투는 조작 없이 자동으로 진행됩니다.',
+    spec: [['기간','2026.08.25 ~ 09.06'],['엔진','Unity 6 · UGUI'],['플랫폼','모바일 Android · 9:16'],['팀','1인 개발'],['코드 규모','81파일 · 11,897줄'],['영상','youtu.be/5jOvFMwxCXs'],['코드','github.com/jsmjsm812/TinyKingdom'],['빌드','github.com/jsmjsm812/TinyKingdom/releases']],
+    sections: [
+      { id:'about', icon:'01', label:'게임 소개', html:
+        '<p>출전마다 반복되는 <b>준비/전투 사이클</b>입니다. 전투 중에는 조작이 전혀 없고, 배치·합성 판단은 전부 20초의 준비 시간 안에서 이뤄집니다.</p>' +
+        '<div class="dpanel"><h4>CORE LOOP</h4><div class="dsteps">' +
+        '<div class="dstep"><span class="n">01</span><b>구역 선택 · 출전</b><span>해금된 구역 중 하나를 골라 필드 초기화</span></div>' +
+        '<div class="dstep"><span class="n">02</span><b>준비 시간 (20초)</b><span>주점 무료 새로고침 + 고용/리롤 + 필드 자유 재배치</span></div>' +
+        '<div class="dstep"><span class="n">03</span><b>웨이브 전투</b><span>조작 없이 자동전투, 3기 모이면 즉시 합성(성급↑)</span></div>' +
+        '<div class="dstep"><span class="n">04</span><b>반복 (10웨이브)</b><span>웨이브 클리어 시 골드 지급 후 02로 복귀</span></div></div>' +
+        '<p style="margin-top:12px;font-size:13px;color:var(--text-3)">10웨이브 클리어 → 구역 영구 보상 · 성벽 HP 0 → 실패(진행 초기화) · 언제든 "그만하기" → 그 웨이브 그대로 저장 후 로비 복귀</p></div>' },
+      { id:'clips', icon:'▶', label:'플레이 영상', html:
+        '<div class="dgallery dvids tall"><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/kingdom_1.mp4" style="aspect-ratio:9 / 16" aria-label="로비 · 수호자 도감, 설정, 왕국의 관문, 아이템 상점"></video><figcaption>로비 · 수호자 도감, 설정, 왕국의 관문, 아이템 상점</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/kingdom_2.mp4" style="aspect-ratio:9 / 16" aria-label="웨이브 1~3 · 길을 따라 걸어오는 침입자와 사거리 표시"></video><figcaption>웨이브 1~3 · 길을 따라 걸어오는 침입자와 사거리 표시</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/kingdom_3.mp4" style="aspect-ratio:9 / 16" aria-label="웨이브 4~8 · 수호자를 합성하며 늘어나는 침입자 막기"></video><figcaption>웨이브 4~8 · 수호자를 합성하며 늘어나는 침입자 막기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/kingdom_4.mp4" style="aspect-ratio:9 / 16" aria-label="웨이브 9~10 · 물량전과 3성 합성, 구역 클리어"></video><figcaption>웨이브 9~10 · 물량전과 3성 합성, 구역 클리어</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/kingdom_5.mp4" style="aspect-ratio:9 / 16" aria-label="클리어 후 로비 · 해금된 수호자 도감"></video><figcaption>클리어 후 로비 · 해금된 수호자 도감</figcaption></figure></div>' },
+      { id:'system', icon:'02', label:'전체 시스템 구조', html:
+        '<h4 style="font-size:14px;margin:0 0 8px;color:var(--text)">용사(수호자) 10종. 등급(★, 소환 시 고정)과 성급(1~3성, 합성으로만 상승)은 별개 축</h4>' +
+        '<div class="dtable-wrap"><table class="dtable"><thead><tr><th>이름</th><th>등급</th><th>방식</th><th>공격력</th><th>고용가</th><th>특수효과(1성)</th></tr></thead><tbody>' +
+        '<tr><td class="dname">민병</td><td>★1</td><td>단일</td><td class="dnum">10</td><td class="dnum">35</td><td class="ddesc">없음</td></tr>' +
+        '<tr><td class="dname">도적</td><td>★1</td><td>단일</td><td class="dnum">20</td><td class="dnum">45</td><td class="ddesc">치명타 15% (2배 피해)</td></tr>' +
+        '<tr><td class="dname">궁수</td><td>★1</td><td>다중(2체)</td><td class="dnum">8</td><td class="dnum">55</td><td class="ddesc">합성 시 3→4체로 동시 타격 대상 증가</td></tr>' +
+        '<tr><td class="dname">야만전사</td><td>★1</td><td>단일</td><td class="dnum">14</td><td class="dnum">30</td><td class="ddesc">5% 확률 기절 0.5초</td></tr>' +
+        '<tr><td class="dname">연금술사</td><td>★2</td><td>범위</td><td class="dnum">24</td><td class="dnum">90</td><td class="ddesc">이동속도 -25%, 2.5초</td></tr>' +
+        '<tr><td class="dname">명사수</td><td>★2</td><td>관통</td><td class="dnum">22</td><td class="dnum">110</td><td class="ddesc">없음</td></tr>' +
+        '<tr><td class="dname">마녀</td><td>★2</td><td>단일+도트</td><td class="dnum">10+10</td><td class="dnum">65</td><td class="ddesc">적중 시 2초간 도트 추가 피해</td></tr>' +
+        '<tr><td class="dname">대마법사</td><td>★3</td><td>범위</td><td class="dnum">42</td><td class="dnum">250</td><td class="ddesc">3초마다 범위 속박 2초(별도 타이머)</td></tr>' +
+        '<tr><td class="dname">빙결사</td><td>★3</td><td>관통+슬로우</td><td class="dnum">34</td><td class="dnum">210</td><td class="ddesc">관통 대상 전체 이동속도 -20%, 2초</td></tr>' +
+        '<tr><td class="dname">왕</td><td>★3</td><td>단일+버프</td><td class="dnum">15</td><td class="dnum">160</td><td class="ddesc">공격 안 함, 인접 아군 공격력 +25% 상시</td></tr>' +
+        '</tbody></table></div>' +
+        '<p style="margin-top:10px;font-size:12.5px;color:var(--text-3)">성급 강화는 데미지 배율(2성×1.8·3성×3.0)뿐 아니라 <b style="color:var(--muted)">공격 방식별 능력 자체</b>도 함께 강화됩니다. 궁수는 화살이 1개씩(2→3→4), 마법사류는 범위가 넓어집니다(×1.0→1.3→1.6).</p>' +
+        '<h4 style="font-size:14px;margin:20px 0 8px;color:var(--text)">구역 3곳, 클리어 시 영구 캐릭터 해금</h4>' +
+        '<div class="dtable-wrap"><table class="dtable"><thead><tr><th>구역</th><th>HP배율</th><th>특수 규칙</th><th>클리어 보상</th></tr></thead><tbody>' +
+        '<tr><td class="dname">1. 왕국의 관문</td><td class="dnum">×1.0</td><td class="ddesc">없음(입문)</td><td class="ddesc">연금술사·명사수·마녀 (★1 전체 해금)</td></tr>' +
+        '<tr><td class="dname">2. 폐허 성채</td><td class="dnum">×1.5</td><td class="ddesc">슬롯 2칸이 잔해로 붕괴, 처음부터 배치 불가</td><td class="ddesc">대마법사·빙결사</td></tr>' +
+        '<tr><td class="dname">3. 마왕의 영지</td><td class="dnum">×2.0</td><td class="ddesc">웨이브 시작마다 성벽 HP -1</td><td class="ddesc">왕 (마지막 지원형 보상)</td></tr>' +
+        '</tbody></table></div>' +
+        '<div class="dcards" style="margin-top:14px">' +
+        '<div><b>용병 주점</b><span>4칸 독립 추첨(★1 70%·★2 25%·★3 5%) · 리롤 20골드 · 준비 시간마다 무료 새로고침</span></div>' +
+        '<div><b>웨이브 체크포인트</b><span>"그만하기" → 웨이브·골드·구매 아이템·배치 슬롯까지 JSON 저장 후 정확히 복원</span></div></div>' },
+      { id:'core', icon:'03', label:'설계 결정', html:
+        '<p style="font-size:13.5px;color:var(--text-3);margin-bottom:12px">여러 번 다시 논의됐지만 최종적으로 유지하기로 한, 의도적인 선택들입니다.</p>' +
+        '<div class="dcards">' +
+        '<div><b>모든 수치는 ScriptableObject, 하드코딩·switch문 금지</b><span>"새 캐릭터 추가 = .asset 하나 만들기"가 되도록 강제. 10종이 전부 같은 GuardianUnit 클래스 하나로 동작하고 차이는 데이터에만 있습니다.</span></div>' +
+        '<div><b>레벨업 없음, 성장은 오직 합성</b><span>성장 축을 하나로 단순화. 별도 강화 재화·UI 없이도 "무엇을 모을지"라는 판단의 깊이가 생깁니다.</span></div>' +
+        '<div><b>등급(희귀도)과 성급(성장)을 분리된 축으로 유지</b><span>두 축을 섞으면 "왜 이 카드가 센지"가 한 번에 설명되지 않습니다.</span></div>' +
+        '<div><b>블라인드 가챠 대신 4칸 상시 노출 + 리롤 상점</b><span>뽑기 연출보다 "무엇을 살지 매번 판단하게 만드는" 전략적 깊이를 우선했습니다.</span></div>' +
+        '<div><b>영구 재화(왕관 파편 등) 완전히 제거</b><span>이걸 소모하는 코드가 끝까지 안 생겼고, 이미 있는 "구역 클리어 여부" 플래그만으로 충분해서 걷어냈습니다.</span></div>' +
+        '<div><b>2구역 기믹을 안개(시야 가림)에서 붕괴 슬롯으로 교체</b><span>전투 중엔 관전만 하는 구조라 시야를 가려도 새 판단을 유도하지 못했습니다. 준비 단계의 배치 판단에 실제로 영향을 주는 제약으로 바꿨습니다.</span></div></div>' },
+      { id:'trouble', icon:'04', label:'기획과 구현 점검', html:
+        '' +
+        '' +
+        '<div class="dcase"><span class="dcase-tag balance">밸런싱</span><h4>"설명은 있지만 실제로는 미구현" 능력 전수 점검</h4>' +
+        '<dl class="dlog"><div><dt>발견</dt><dd>처음부터 해금돼 있던 도적(치명타)·야만전사(기절)까지 포함해 총 <b>6종의 특수효과가 데이터 텍스트로만 존재</b>하고 코드가 아예 없다는 사실을 발견했습니다.</dd></div>' +
+        '<div><dt>대응</dt><dd>코드 전체를 crit/stun/도트/버프/슬로우 키워드로 전수 검색해 미구현 항목을 확정. 기존 DPS 기댓값 표가 이미 이 확률을 반영해 계산돼 있었으므로 <b>수치는 그대로 두고 코드만 그 수치대로 동작하게</b> 맞췄습니다.</dd></div></dl></div>' },
+      { id:'balance', icon:'05', label:'반복 밸런싱', html:
+        '<p style="font-size:13.5px;color:var(--text-3);margin-bottom:4px">플레이 피드백을 근거로 여러 차례 되돌리거나 다시 조정한 실제 이력입니다. 숫자를 감으로 정하지 않았다는 증거로 남겨둡니다.</p>' +
+        '<dl class="dlog">' +
+        '<div><dt>슬롯 조정</dt><dd>22칸 설계를 17칸으로 축소하고, 줄어든 화력을 보전하려 웨이브 클리어 보상을 30→35로 상향.</dd></div>' +
+        '<div><dt>HP 조정</dt><dd>"몹이 안 죽어 보인다"로 HP를 두 차례 대폭 상향(고블린 20→110)했지만, 진짜 원인은 전원 동시발사였습니다. 근본 원인을 고친 뒤에도 상향된 HP 곡선은 유지했습니다.</dd></div>' +
+        '<div><dt>1구역 난이도 반전</dt><dd>쉽다는 피드백으로 HP배율을 ×1.15로 올렸다가, 슬롯 축소·소환가 개편이 누적되며 반대 피드백이 나와 ×1.0으로 원복.</dd></div>' +
+        '<div><dt>잠금 캐릭터 2차 패스</dt><dd>"가격은 더 싸게, 능력은 더 좋게" 방향으로 6종 전원 재조정. 공격력 평균 +15~20%, 가격 전원 인하(연금술사 110→90).</dd></div>' +
+        '<div><dt>처치 보상 상향</dt><dd>"잡아도 골드가 체감이 안 된다" → 개별 처치 보상의 존재감이 약했던 게 원인이라 판단, 전 개체 약 2~2.5배 상향.</dd></div></dl>' },
+      { id:'ai', icon:'06', label:'AI 협업 워크플로우', html:
+        '<p style="font-size:13.5px;color:var(--text-3)">Claude Code(AI 페어 프로그래밍)를 적극적으로 썼습니다. 숨기지 않고 <b style="color:var(--muted)">어떻게 나눠 일했고 어디서 AI를 신뢰하지 않았는지</b>를 남겨둡니다.</p>' +
+        '<div class="dsplit">' +
+        '<div><h5>내가 한 것</h5><ul>' +
+        '<li><b>기획·설계 결정 전부</b>: 장르, 코어 루프, 성장 축</li>' +
+        '<li><b>플레이 검증</b>: Unity Play 모드 실행·재현·로그 확인 (AI는 에디터를 실행할 수 없음)</li>' +
+        '<li><b>밸런스 판단</b>: 체감 피드백과 수치 방향 결정</li>' +
+        '<li><b>수용/반려</b>: 기획에 안 맞는 제안(레벨업 재도입 등)은 규칙으로 못박아 차단</li></ul></div>' +
+        '<div><h5>AI에게 맡긴 것</h5><ul>' +
+        '<li><b>구현·리팩터링</b>: 결정된 설계를 코드로</li>' +
+        '<li><b>정적 분석</b>: 씬 YAML·에셋 파일까지 읽어 참조 관계 추적</li>' +
+        '<li><b>전수 점검</b>: "미구현 능력" 6종을 찾은 키워드 전수 검색</li>' +
+        '<li><b>에디터 자동화 스크립트</b>: 커스텀 메뉴 58개</li></ul></div></div>' +
+        '<div class="dpanel" style="margin-top:14px"><h4>제약이 아키텍처를 바꾼 사례</h4>' +
+        '<p style="font-size:13px;color:var(--muted);margin-bottom:12px">AI는 Unity 에디터 GUI를 클릭할 수 없어서, "이 버튼을 여기 배치해줘" 같은 작업이 전부 메뉴로 실행 가능한 에디터 스크립트로 작성됐고, 결과적으로 <b style="color:var(--text)">씬 구성 자체가 재현 가능한 코드</b>가 됐습니다.</p>' +
+        '<div class="dspec"><div><dt>런타임 코드</dt><dd>4,851줄</dd></div><div><dt>에디터 도구</dt><dd>7,046줄 · 58개 메뉴</dd></div><div><dt>주석</dt><dd>1,680줄</dd></div></div></div>' +
+        '' +
+        '<div class="dwhy"><b>왜 이렇게 했는가</b>AI는 문맥이 끊기면 "합리적으로 보이는" 제안을 다시 합니다. 실제로 레벨업 시스템을 다시 넣자는 제안이 나왔었고, 그건 의도적으로 제거한 축이었습니다. 결정을 코드가 아니라 문서에 고정해두니 같은 논쟁을 반복하지 않게 됐습니다.</div>' },
+      { id:'learn', icon:'07', label:'현재 상태 · 배운 점', html:
+        '<div class="dspec">' +
+        '<div><dt>MVP 완료</dt><dd>구역 3 × 10웨이브</dd></div>' +
+        '<div><dt>수호자</dt><dd>10종</dd></div>' +
+        '<div><dt>침입자</dt><dd>8종</dd></div>' +
+        '<div><dt>MVP 제외</dt><dd>★4 등급 · 확률 보정 · 결제 · PvP</dd></div></div>' +
+        '<p style="margin-top:16px">기믹이 재미있어 보이는 것과 실제로 플레이어의 판단을 바꾸는 것은 다른 문제였습니다. 안개 기믹을 버리고 붕괴 슬롯으로 바꾼 판단이 이 프로젝트에서 가장 중요한 결정이었습니다.</p>' +
+        '<p>혼자 개발하니 막히는 지점이 코드가 아니라 파이프라인인 경우가 많았습니다. 에디터 툴을 만드는 시간이 아까워 보여도, 만들고 나면 그 뒤 작업 속도가 완전히 달라진다는 것을 배웠습니다.</p>' }
+    ]
+  },
+
+  gladiator: {
+    title: 'LAST\nGLADIATOR', name: '라스트 글래디에이터', sub: '2인 팀 · 팀장 · 2026.05.28 ~ 06.26',
+    keyArt: 'lg_title', keyArtRatio: '16/9',
+    tagline: '로마 콜로세움 배경 3인칭 소울라이크 액션 RPG · "로마 시대 1대1 소울라이크"',
+    intro: '2인 팀이 4주 안에 데모 빌드까지 완성했습니다. 패링·회피 기반 근접 전투 + 웨이브 스테이지(6종) + KillCam 결정타 연출. 게임 기획(컨셉·전투 규칙·스테이지 밸런싱)과 클라이언트 프로그래밍을 전담했고, 팀장으로 4주 마일스톤을 결정했습니다.',
+    spec: [['기간','2026.05.28 ~ 06.26 (4주)'],['엔진','Unity 6 · C#'],['팀','2인 · 팀장'],['플랫폼','PC · 스테이지 6종'],['영상','youtu.be/g3t2Uxi8HEQ'],['코드','github.com/jsmjsm812/LAST-GLADIATOR']],
+    sections: [
+      { id:'role', icon:'01', label:'내 담당 · 역할 구분', html:
+        '<div class="dsplit">' +
+        '<div><h5>내가 담당</h5><ul>' +
+        '<li><b>게임 기획</b>: 컨셉, 전투 규칙, 스테이지 밸런싱</li>' +
+        '<li><b>클라이언트 프로그래밍</b>: 적 AI(15개 상태 FSM), 패링 0.2초 판정</li>' +
+        '<li><b>팀장</b>: 4주 마일스톤과 스코프 결정</li></ul></div>' +
+        '<div><h5>파트너 담당</h5><ul>' +
+        '<li>나머지 작업 (세부 내역은 저장소의 커밋 기록에서 확인할 수 있습니다)</li></ul></div></div>' +
+        '<p style="font-size:13px;color:var(--text-3);margin-top:12px">이 페이지의 코드 발췌는 모두 제가 직접 작성한 부분입니다.</p>' },
+      { id:'about', icon:'02', label:'게임 소개', html:
+        '<p>플레이어는 적의 공격 모션을 읽고 가드할지 패링할지를 매번 선택합니다. 패링에 성공하면 적이 경직 상태로 넘어가 반격 기회가 열리고, 실패하면 무방비 구간에 그대로 노출됩니다.</p>' +
+        '<div class="dcase"><span class="dcase-tag feature">팀장 결정</span><h4>스코프를 "패링 중심 근접 전투 한 판"으로 축소</h4>' +
+        '<p style="font-size:14px;color:var(--muted)">초기 스코프는 오픈 필드 · 다수 무기 · 성장 시스템이었습니다. 4주 안에 데모를 확보하려면 다 만들 수 없다고 판단해, 팀을 설득해 <b style="color:var(--text)">패링 중심 근접 전투 한 판</b>으로 범위를 좁혔습니다. 파트너와 역할을 나눠 진행했습니다.</p></div>' },
+      { id:'clips', icon:'▶', label:'플레이 영상', html:
+        '<div class="dgallery dvids"><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/gladiator_1.mp4" style="aspect-ratio:16 / 9" aria-label="프롤로그 컷신 · 노예가 된 로마 장군의 이야기"></video><figcaption>프롤로그 컷신 · 노예가 된 로마 장군의 이야기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/gladiator_2.mp4" style="aspect-ratio:16 / 9" aria-label="튜토리얼 · 안내 NPC와 조작법, 옵션 설정"></video><figcaption>튜토리얼 · 안내 NPC와 조작법, 옵션 설정</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/gladiator_3.mp4" style="aspect-ratio:16 / 9" aria-label="첫 전투 · 노예 스파르타쿠스와의 STAGE 1, 승리"></video><figcaption>첫 전투 · 노예 스파르타쿠스와의 STAGE 1, 승리</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/gladiator_4.mp4" style="aspect-ratio:16 / 9" aria-label="상점과 장비 · 무기와 방패 구매, 장비 확인"></video><figcaption>상점과 장비 · 무기와 방패 구매, 장비 확인</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/gladiator_5.mp4" style="aspect-ratio:16 / 9" aria-label="스킬 전투 · 범위 공격, 얼음 구체, 광역 검격 이펙트"></video><figcaption>스킬 전투 · 범위 공격, 얼음 구체, 광역 검격 이펙트</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/gladiator_6.mp4" style="aspect-ratio:16 / 9" aria-label="후반 스테이지 · 보스 전투와 스킬 연출"></video><figcaption>후반 스테이지 · 보스 전투와 스킬 연출</figcaption></figure></div>' },
+      { id:'core', icon:'03', label:'핵심 설계 근거', html:
+        '' +
+        '<div class="dwhy"><b>왜 이렇게 했는가</b>판정 창을 0.1초 이하로 좁히면 유저가 성공을 반복하기 어려워 좌절하고, 0.3초 이상으로 넓히면 실수로도 성공해 긴장감이 사라집니다. 소울 시리즈의 판정 창(0.16~0.24초)을 참고해 <b>"연습하면 손에 잡히는" 0.2초</b>로 결정했습니다.</div>' +
+        '' +
+        '<div class="dwhy"><b>왜 이렇게 했는가</b>코드로 짜면 밸런싱마다 재빌드가 필요하고, JSON으로 빼면 인스펙터 지원이 없습니다. ScriptableObject는 <b>인스펙터 즉시 편집 + 프리팹처럼 참조 + 컴파일 안전</b> 세 가지가 다 되는 유일한 선택지였습니다.</div>' },
+      { id:'learn', icon:'04', label:'배운 점', html:
+        '<p>기능 개수보다 핵심 재미를 명확히 정의하고 안정적으로 완성하는 쪽이 결과에 훨씬 크게 남습니다. 4주짜리 프로젝트에서 소울라이크의 모든 요소를 넣을 수는 없었고, 팀을 설득해 스코프를 축소하고 패링 하나를 제대로 만든 것이 옳은 선택이었습니다.</p>' +
+        '<p>조작감 문제는 대부분 수치가 아니라 구조 문제였습니다. Behavior Tree는 학습·디버깅 비용이 커서 4주 스케줄에 안 맞았고, FSM + 인터럽트 스택으로 상태 관리 로직을 단일 지점에 모은 것이 이 프로젝트의 핵심 판단이었습니다.</p>' }
+    ]
+  },
+
+  chronicle: {
+    title: 'WITCH\nCHRONICLE', name: '위치 크로니클', sub: '5인 팀 · 팀장 · 2026.06.29 ~ 08.14',
+    keyArt: 'wc_title', keyArtRatio: '16/9',
+    tagline: '마법 미소녀들의 일상과 마법 전투 · 라이프 시뮬 + 턴제 전투 RPG',
+    intro: '5인 팀 프로젝트로, 라이프 시스템(파밍·낚시·연금술)과 6속성 턴제 전투가 하나의 루프로 연결됩니다. 세계관·컨셉부터 게임 전체 기획을 맡았고, 실제 구현은 라이프 시스템 파트(IdleFarming·Fishing·Alchemy)와 스킬 SO 67종을 직접 담당했습니다. 전투 규칙(6속성 상성·상태이상)은 제가 설계하고 코드 구현은 팀원이 맡았습니다.',
+    spec: [['기간','2026.06.29 ~ 08.14'],['엔진','Unity 6 · C#'],['팀','5인 · 팀장'],['플랫폼','PC · 3D'],['영상','youtu.be/kNYvXD6YcRg'],['코드','github.com/jsmjsm812/WitchChronicle']],
+    sections: [
+      { id:'role', icon:'01', label:'내 담당 · 역할 구분', html:
+        '<div class="dsplit">' +
+        '<div><h5>내가 담당</h5><ul>' +
+        '<li><b>세계관 · 게임 전체 기획</b></li>' +
+        '<li><b>전투 규칙 설계</b>: 6속성 상성, 상태이상</li>' +
+        '<li><b>라이프 시스템 구현</b>: IdleFarming · Fishing · Alchemy</li>' +
+        '<li><b>스킬 데이터 67종</b>: 정의, ID 체계, 자동 등록</li>' +
+        '<li><b>팀장</b>: 파일 소유권 규칙, 저장소 이전 결정</li></ul></div>' +
+        '<div><h5>팀원 담당</h5><ul>' +
+        '<li><b>전투 규칙의 코드 구현</b>: 전투 실행 로직</li>' +
+        '<li>위에 적지 않은 나머지 파트</li></ul></div></div>' +
+        '<p style="font-size:13px;color:var(--text-3);margin-top:12px">이 페이지의 코드 발췌(PlotSaveData, Fishing)는 제가 직접 작성한 라이프 시스템 코드입니다.</p>' },
+      { id:'about', icon:'02', label:'게임 소개', html:
+        '<p>마녀학교를 배경으로 한 라이프 시뮬 RPG입니다. 방치형 파밍 · 낚시 · 연금술 · 전투 규칙 세트가 정상 동작하는 하나의 루프로 이어집니다. 저장/로드 · 인벤 연동 · UI 개선은 다음 스프린트에서 마무리하는 단계입니다.</p>' +
+        '<div class="dcase"><span class="dcase-tag feature">팀 리드</span><h4>파일 소유권 규칙을 팀 위키에 정립</h4>' +
+        '<p style="font-size:14px;color:var(--muted)">초반 파일 소유권 충돌이 발생해 <b style="color:var(--text)">"필드 추가는 소유자 협의 후"</b> 규칙을 세워 충돌을 줄였습니다. Git LFS 이슈가 생겼을 때는 새 조직·리포지토리로 이전하는 결정을 주도했습니다.</p></div>' },
+      { id:'clips', icon:'▶', label:'플레이 영상', html:
+        '<div class="dgallery dvids"><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_1.mp4" style="aspect-ratio:16 / 9" aria-label="마을 탐험 · 성벽과 광장, 항구까지 이어지는 3D 마을"></video><figcaption>마을 탐험 · 성벽과 광장, 항구까지 이어지는 3D 마을</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_2.mp4" style="aspect-ratio:16 / 9" aria-label="낚시 · 텐션 게이지를 눌러서 맞추는 미니게임"></video><figcaption>낚시 · 텐션 게이지를 눌러서 맞추는 미니게임</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_3.mp4" style="aspect-ratio:16 / 9" aria-label="농사 · 씨앗 심기부터 수확까지, 오프라인 시간도 정산"></video><figcaption>농사 · 씨앗 심기부터 수확까지, 오프라인 시간도 정산</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_4.mp4" style="aspect-ratio:16 / 9" aria-label="연금술 · 레시피를 누르면 재료 슬롯이 자동으로 채워짐"></video><figcaption>연금술 · 레시피를 누르면 재료 슬롯이 자동으로 채워짐</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_5.mp4" style="aspect-ratio:16 / 9" aria-label="상점과 장비 강화 · 아이템 구매, 강화 성공·실패 연출"></video><figcaption>상점과 장비 강화 · 아이템 구매, 강화 성공·실패 연출</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_6.mp4" style="aspect-ratio:16 / 9" aria-label="인벤토리와 스킬 장착 · 마도서 획득, 스킬 가챠 연출"></video><figcaption>인벤토리와 스킬 장착 · 마도서 획득, 스킬 가챠 연출</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_7.mp4" style="aspect-ratio:16 / 9" aria-label="던전 전투 1 · 스킬을 고르고 대상을 지정하는 턴제 전투"></video><figcaption>던전 전투 1 · 스킬을 고르고 대상을 지정하는 턴제 전투</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_8.mp4" style="aspect-ratio:16 / 9" aria-label="던전 전투 2 · 몬스터 그룹을 상대하는 파티 전투"></video><figcaption>던전 전투 2 · 몬스터 그룹을 상대하는 파티 전투</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_9.mp4" style="aspect-ratio:16 / 9" aria-label="던전 상자와 보스 조우 · 보상 상자, 인벤토리 반영, 보스 등장"></video><figcaption>던전 상자와 보스 조우 · 보상 상자, 인벤토리 반영, 보스 등장</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_10.mp4" style="aspect-ratio:16 / 9" aria-label="던전 보스전 · 보스 패턴과 스킬 연출"></video><figcaption>던전 보스전 · 보스 패턴과 스킬 연출</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/chronicle_11.mp4" style="aspect-ratio:16 / 9" aria-label="승리 보상 · 전투 결과와 획득 경험치·골드"></video><figcaption>승리 보상 · 전투 결과와 획득 경험치·골드</figcaption></figure></div>' },
+      { id:'system', icon:'03', label:'전체 시스템 구조', html:
+        '<div class="dpanel"><h4>MY SYSTEMS</h4><div class="dcards">' +
+        '<div><b>IdleFarming</b><span>씨앗 영구 유지 + DateTime 기반 오프라인 계산 + 최대 5사이클 보상</span></div>' +
+        '<div><b>Fishing 홀드 미니게임</b><span>정규화 -1~+1 텐션, 낚싯대 등급 매칭, 어종 18종 · 낚싯대 3종</span></div>' +
+        '<div><b>Alchemy 연금술</b><span>Cooking·Potion 2모드, 실시간 딕셔너리 매칭, Cinemachine 카메라 스왑</span></div>' +
+        '<div><b>스킬 SO 67종</b><span>데이터 정의·ID 체계·Database 자동 등록 (전투 실행 로직은 팀원 담당)</span></div>' +
+        '<div><b>라이프 아이템 200종+</b><span>씨앗·수확·어종·요리·포션·재료 통합 ID 체계</span></div>' +
+        '<div><b>자동 등록 · ID 검증</b><span>폴더 스캔 → ID 중복 검증 → Runtime Dictionary O(1) 조회</span></div>' +
+        '<div><b>PlotSaveData</b><span>밭 상태 · 심은 씨앗 · 사이클 시각의 ISO8601 직렬화 필드 구조</span></div>' +
+        '<div><b>연금술 연출</b><span>Cinemachine 카메라 스왑(일반 ↔ 연금술 ↔ 전투 시점), 3D 가마솥 머티리얼 스왑, 캐릭터 애니메이션 트리거 연동</span></div></div></div>' },
+      { id:'core', icon:'04', label:'설계 근거', html:
+        '' +
+        '<div class="dwhy"><b>왜 이렇게 했는가</b>매 프레임 타이머는 앱 강제 종료 · 절전 · 백그라운드 진입 어느 하나에도 안전하지 않습니다. 서버가 없어 서버 시간 참조도 불가능했습니다. <b>"심은 시각만 저장 → 접속 시점 1회 계산"</b>은 세 시나리오를 한 번에 커버하면서 CPU·배터리 부담이 0인 유일한 해법이었습니다. ISO8601 "o" 포맷은 밀리초·시간대까지 무손실 왕복이 표준으로 보장됩니다.</div>' +
+        '' +
+        '<div class="dwhy"><b>왜 이렇게 했는가</b>위험 구간 진입 시 즉시 실패가 아니라 <b>타이머 누적</b>으로 처리했고, 안전 구간으로 돌아오면 타이머를 0으로 되돌립니다(위 코드의 강조 줄). 짧게 스치면 회복 가능, 오래 머무르면 실패. 즉시 실패 방식은 유저가 "실수 한 번에 다 잃음"으로 느껴 재시도 의욕이 꺾이지만, 스치듯 회복하는 액션을 허용하면 조작 실력이 늘고 있다는 감각을 얻게 됩니다.</div>' },
+      { id:'trouble', icon:'05', label:'문제 해결 경험', html:
+        '<div class="dcase"><span class="dcase-tag bug">버그 해결</span><h4>앱을 끄면 자라던 작물이 사라지던 문제</h4>' +
+        '<dl class="dlog">' +
+        '<div><dt>기존 방식</dt><dd>Update()에서 매 프레임 <code>growthTimer -= Time.deltaTime</code>. 0 도달 시 pendingHarvestCount 증가.</dd></div>' +
+        '<div><dt>발생 문제</dt><dd>앱 강제 종료·절전 모드에서는 저장 콜백이 안 불려 다음 접속 시 타이머가 초기화되어 자란 열매가 0이 됐습니다.</dd></div>' +
+        '<div><dt>개선 방식</dt><dd>매 프레임 타이머 폐기. 심을 때 <code>DateTime.Now</code>를 ISO8601로 저장, 접속 시점에 1회 정산: <code>count = Clamp(floor((Now−cycleStart)/cycleSeconds), 0, 5)</code></dd></div>' +
+        '<div><dt>검증</dt><dd>같은 초 접속→0개 · 정확히 1사이클 후→1개 · 5.5사이클 후→5개(clamp) · 100일 방치→5개(clamp) · 기기 시간 되돌림→0으로 clamp. 백그라운드 로직 0개로 배터리 부담 없음.</dd></div></dl></div>' +
+        '<div class="dcase"><span class="dcase-tag balance">데이터 관리</span><h4>등록 누락 · ID 중복을 에디터 자동 검증으로 차단</h4>' +
+        '<dl class="dlog">' +
+        '<div><dt>발생 문제</dt><dd>신규 SO 등록 누락 → Runtime NullReference. 같은 ID 중복 부여 → Get(id)가 잘못된 SO 반환. 카테고리 오류(씨앗 대역에 요리 SO 혼입).</dd></div>' +
+        '<div><dt>개선 방식</dt><dd>필수 필드 무결성 검사(로드 시점 자동 검증) → 참조 무결성 검사(끊긴 참조 에디터 시작 시 즉시 감지) → Runtime 안전 조회(List→Dictionary 변환, 실패 시 fallback SO + 경고 로그).</dd></div>' +
+        '<div><dt>결과</dt><dd>Runtime NullReference 크래시가 에디터 시작 시 로그로 사전 차단됨. 조회 실패해도 fallback으로 <b>플레이 세션 크래시 0건</b>.</dd></div></dl></div>' },
+      { id:'learn', icon:'06', label:'배운 점', html:
+        '<p>팀장의 일은 더 빨리 짜는 게 아니라, 다섯 명이 같은 방향을 보게 만들고 같은 실수가 두 번 나지 않게 규칙을 남기는 것이었습니다. PR로 결정을 남겨두니 나중에도 되짚을 수 있었습니다.</p>' +
+        '<p>저장/로드·인벤 연동처럼 있으면 좋지만 루프 검증엔 급하지 않은 기능은 다음 스프린트로 과감히 미루고, <b>라이프 시스템과 전투가 하나로 이어지는 핵심 루프</b>부터 완성했습니다. 다 갖추는 것보다 핵심이 먼저 도는 것이 협업에서 더 중요하다고 생각합니다.</p>' }
+    ]
+  },
+
+  mawang: {
+    title: 'LV.UP', name: '용사 때문에 레벨업', sub: '5인 팀 · 마왕 성장 시스템·밸런스·연출 담당 · 2026.09.07 ~ 10.16',
+    keyArt: 'mawang_title', keyArtRatio: '16/9',
+    tagline: '마왕이 되어 쳐들어오는 용사를 마왕군으로 막는 역방향 타워 디펜스',
+    intro: '5인 팀으로 6주 동안 만든 프로젝트입니다. 플레이어가 마왕이 되어 마왕성을 지키고, 준비 단계에서 마왕군을 배치하고 합성한 뒤 전투에서 용사 웨이브를 막습니다. 저는 마왕 성장 시스템 전체(스킬·레벨업·특성 트리·증강·시너지)와 밸런스를 맡았고, 이를 팀원이 만든 실제 전투에 연결했으며 튜토리얼·로딩·웨이브 배너 같은 인게임 연출까지 담당했습니다.',
+    spec: [['기간','2026.09.07 ~ 10.16 (6주)'],['엔진','Unity 6 · C#'],['팀','5인'],['시점','2D 탑뷰'],['상태','STOVE 출시 예정']],
+    sections: [
+      { id:'status', icon:'01', label:'진행 상황', html:
+        '<p>6주(2026.09.07 ~ 10.16) 일정으로 만든 프로젝트로, <b>STOVE 출시를 앞두고 있습니다(출시 예정)</b>. 상단 이미지는 로고(AI 생성)이고, 실제 플레이 화면과 영상은 완성 단계에서 추가합니다.</p><div class="dcards"><div><b>커밋 116개</b><span>2026.09.08 ~ 10.13, 본인 작성분</span></div><div><b>Pull Request 19개</b><span>기능 브랜치 단위로 머지</span></div><div><b>C# 134파일 · 약 3만 줄</b><span>본인이 만든 파일 기준</span></div><div><b>데이터 에셋</b><span>스킬 19 · 증강 30 · 특성 40 · 시너지 12</span></div></div>' },
+      { id:'role', icon:'02', label:'내 담당', html:
+        '<div class="dsplit"><div><h5>내가 담당</h5><ul><li><b>마왕 성장 시스템 전체</b>: 스킬, 마왕 레벨업, 특성 트리 40노드, 증강 30종, 시너지 12종</li><li><b>실전투 통합</b>: 성장 시스템을 팀원이 만든 실제 유닛 전투에 연결</li><li><b>밸런스</b>: 밸런스 시트 관리, 시뮬레이터·생성기·테스트 루프 제작, 수치 조정</li><li><b>인게임 연출·UX</b>: 튜토리얼, 오프닝 스토리, 로딩 화면, 웨이브 배너, 카메라, 체력바</li><li><b>진행·저장</b>: 이어하기, 난이도 잠금, 기록, 마왕군 해금, 도감·업적 연동</li><li><b>QA</b>: 로비·인게임 디버그 패널, 상황 재현 도구</li></ul></div><div><h5>팀원 담당</h5><ul><li>그리드 배치와 합성, 스테이지 진행 흐름 (2인)</li><li>용사와 마왕군 전투 로직, 사운드 시스템</li><li>UI 아트와 프리팹 디자인 (저는 이 UI를 게임 로직에 연결하고 연출을 얹었습니다)</li></ul></div></div>' },
+      { id:'about', icon:'03', label:'게임 소개', html:
+        '<p>용사들이 마왕을 잡으러 마왕성으로 쳐들어오고, 마왕군이 이를 막는 라운드 기반 디펜스입니다. 준비 단계에서 유닛을 그리드에 배치하고 합성하며, 전투가 끝나면 보상으로 마왕군을 늘려 갑니다. 마왕은 용사를 쓰러뜨려 레벨을 올리고, 직접 스킬을 써서 전투에 개입합니다.</p><p>난이도는 보통 30라운드, 어려움 50라운드입니다. 막힌 구간은 반복 파밍 대신 스킬 조합 변경, 새로 찍은 특성, 다른 증강 선택으로 다시 공략하도록 설계했습니다.</p>' },
+      { id:'clips', icon:'▶', label:'플레이 영상', html:
+        '<div class="dgallery dvids"><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_1.mp4" style="aspect-ratio:16 / 9" aria-label="오프닝 스토리 · 잠든 마왕, 쳐들어오는 용사들, 마왕의 각성"></video><figcaption>오프닝 스토리 · 잠든 마왕, 쳐들어오는 용사들, 마왕의 각성</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_2.mp4" style="aspect-ratio:16 / 9" aria-label="스킬 세팅 · 봉인된 스킬을 SP로 해금하고 장착 칸에 끼우기"></video><figcaption>스킬 세팅 · 봉인된 스킬을 SP로 해금하고 장착 칸에 끼우기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_3.mp4" style="aspect-ratio:16 / 9" aria-label="특성 트리 · 40개 노드를 LP로 올리는 영구 성장"></video><figcaption>특성 트리 · 40개 노드를 LP로 올리는 영구 성장</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_4.mp4" style="aspect-ratio:16 / 9" aria-label="도감과 로딩 · 해금한 마왕군 확인, 로딩 화면의 마왕"></video><figcaption>도감과 로딩 · 해금한 마왕군 확인, 로딩 화면의 마왕</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_5.mp4" style="aspect-ratio:16 / 9" aria-label="첫 전투와 보상 카드 · 웨이브를 막고 카드 고르기"></video><figcaption>첫 전투와 보상 카드 · 웨이브를 막고 카드 고르기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_6.mp4" style="aspect-ratio:16 / 9" aria-label="준비 단계 · 마왕군을 발판에 놓고 전투 시작"></video><figcaption>준비 단계 · 마왕군을 발판에 놓고 전투 시작</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_7.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 6 · 몰려오는 용사를 마왕군과 스킬로 막기"></video><figcaption>웨이브 6 · 몰려오는 용사를 마왕군과 스킬로 막기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_8.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 7 · 준비 단계 배치부터 연쇄 번개 전투까지"></video><figcaption>웨이브 7 · 준비 단계 배치부터 연쇄 번개 전투까지</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_9.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 8 · 더 많아진 용사, 웨이브 클리어 배너"></video><figcaption>웨이브 8 · 더 많아진 용사, 웨이브 클리어 배너</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_10.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 9 · 화염구와 배치 진형으로 막는 전투"></video><figcaption>웨이브 9 · 화염구와 배치 진형으로 막는 전투</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_11.mp4" style="aspect-ratio:16 / 9" aria-label="보스 웨이브 · 경고 배너와 보스전"></video><figcaption>보스 웨이브 · 경고 배너와 보스전</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_12.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 11 · 드래그로 화염구·연쇄 번개·운석 시전"></video><figcaption>웨이브 11 · 드래그로 화염구·연쇄 번개·운석 시전</figcaption></figure></div>' },
+      { id:'system', icon:'04', label:'성장 시스템 설계', html:
+        '<div class="dcards"><div><b>스킬 19종</b><span>딜·디버프·버프·궁극 4계열. 강화 레벨 없이 SP로 봉인을 풀면 완성되고, 3칸(특성으로 최대 5칸)에 장착합니다. 즉시형·지점 조준형·방향형 시전.</span></div><div><b>마왕 레벨 · 이중 재화</b><span>용사 처치 XP로 레벨업해 LP를, 라운드 진행으로 SP를 받습니다. 레벨은 런마다 Lv1로 돌아가고 LP·SP·해금은 계정에 남습니다.</span></div><div><b>특성 트리 40노드</b><span>몬스터·용사·스킬·재화 4갈래, 갈래마다 3라인 + 캡스톤. 부모 노드를 만렙까지 찍어야 다음이 열립니다.</span></div><div><b>증강 30종</b><span>런 한정, 3장 중 1장, 중복 불가. 치명타, 메아리 재시전, 처치 시 쿨타임 감소, 첫 피격 무효 보호막 같은 특이 매커니즘 10여 종.</span></div><div><b>시너지 12종</b><span>직업 6종의 배치 수(3/5명) 시너지와, 서로 다른 두 직업 조합 시너지 6종.</span></div></div><p style="font-size:16px;color:var(--text);font-weight:700;margin:22px 0 6px">재화를 둘로 나눈 이유</p><p>하나로 합치면 특성과 스킬 해금이 같은 지갑을 두고 경쟁해서 한쪽만 찍는 최적해가 생깁니다. LP는 <b>얼마나 잘 싸웠나(처치)</b>, SP는 <b>얼마나 멀리 갔나(라운드)</b>를 보상하도록 획득 경로부터 분리했습니다. SP는 처음에 10라운드마다만 줬다가, 초반 런에서 스킬 해금 체감이 없다는 테스트 결과를 보고 2라운드마다 잘게 주는 방식으로 바꿨습니다.</p><div class="dpanel"><h4>XP 곡선</h4><p style="font-size:14px;color:var(--text)">필요 XP = 60 + 40n + 8n² (n = 레벨 - 1)</p></div><div class="dwhy"><b>왜 이렇게 했는가</b>초반 레벨업은 빠르게 체감되고 후반은 완만해지도록 2차 항을 넣었습니다. 런당 LP가 약 15~18개 나오도록 맞춰서, 한 런에 특성 라인 하나(9 LP)를 뚫고 한 갈래 완성(33 LP)은 약 2런, 전체 완성은 8~10런이 걸리게 했습니다. 부모 만렙 해금 규칙은 얕게 여러 갈래를 찍기보다 한 방향으로 깊게 파서 빌드 정체성이 생기게 하려는 의도입니다.</div><p style="font-size:16px;color:var(--text);font-weight:700;margin:22px 0 6px">코어는 순수 C#, 실행과 연출은 MonoBehaviour</p><p><code>SkillManager</code>, <code>MawangLevel</code>, <code>TraitTree</code>, <code>AugmentRun</code>, <code>SynergyTracker</code>는 전부 MonoBehaviour가 아닌 순수 C# 클래스입니다. 스킬 매니저는 피해를 직접 주지 않고 시전 요청 이벤트만 보냅니다.</p><div class="dwhy"><b>왜 이렇게 했는가</b>실제 게임 씬(그리드·유닛)은 팀원이 동시에 만들고 있어서, 성장 시스템을 씬에 묶으면 그 씬이 완성될 때까지 아무것도 검증할 수 없었습니다. 판정(쿨타임·장착·전투 중 여부)과 실행(피해·CC·VFX)을 나눠 두니 개인 샌드박스 씬에서 1~2주차에 스킬·특성·증강을 먼저 완성했고, 3주차에 실전투로 옮길 때 코어 코드는 거의 바뀌지 않았습니다. 실행부는 VFX 프리팹이 없으면 코드로 그린 연출로 대신해서 아트가 늦어도 검증이 막히지 않게 했습니다.</div><p>성장 시스템은 인터페이스 폴더만 참조하고 테스트용 샌드박스는 절대 참조하지 않게 의존 방향을 한쪽으로 고정했습니다. 또 특성(계정 영구)과 증강(이번 런만)의 보정값은 필드 모양이 같아도 별도 타입으로 나눴습니다. 저장 수명이 다른 값을 한 타입에 담으면 런이 끝난 증강이 저장되는 버그가 구조적으로 생길 수 있기 때문입니다.</p>' },
+      { id:'integration', icon:'05', label:'실전투 통합', html:
+        '<p>3주차에 가장 큰 문제는 지금까지 만든 성장 시스템이 전부 샌드박스 유닛에서만 동작하고, 팀원이 만든 실제 유닛(<code>UnitBase</code>)에는 반영되지 않는다는 것이었습니다. 실제 유닛은 제 인터페이스를 구현하지 않았고 피해 값 타입도 달랐습니다.</p><p>그래서 두 시스템이 서로를 참조하지 않는 정적 보정값 저장소를 가운데에 두었습니다. 제 쪽이 특성·증강·시너지를 합산해 <b>쓰고</b>, 유닛 쪽은 <b>읽어서 곱하기만</b> 합니다.</p><div class="dwhy"><b>왜 이렇게 했는가</b>값이 없는 조합은 항상 1(무효과)을 돌려줘서, 이 저장소를 모르는 씬에서도 팀원 코드가 원래대로 돌아갑니다. 덕분에 팀원 파일에는 피해 보정·공격 알림·방어·이동 4줄의 훅만 넣었고, 커밋 제목에 파일 소유자를 적어 리뷰어가 바로 알 수 있게 했습니다. 키를 (직업, 진영) 쌍으로 잡은 것은 실제로 겪은 버그 때문입니다. 용사와 마왕군이 같은 직업 enum을 쓰는데 처음엔 직업만 키로 써서, 마왕군 전사 강화가 적 용사 전사에게도 그대로 적용됐습니다.</div><p style="font-size:16px;color:var(--text);font-weight:700;margin:22px 0 6px">팀원 작업을 직접 고치지 않고 연결하기</p><p>여러 명이 같은 씬과 프리팹을 만지면 머지 충돌이 끊이지 않습니다. 그래서 팀원의 UI 프리팹과 씬은 실행 중에 연결하는 브리지 컴포넌트(64개 파일)로 다뤘습니다. 씬이 열리면 자동으로 붙고(<code>RuntimeInitializeOnLoadMethod</code>), 필요한 값은 공개 API나 리플렉션으로 읽습니다. 팀 공용 씬을 직접 수정하지 않는 규칙 때문에 복사본 씬에서 팀원 작업을 반영하며 통합한 뒤, 안정화되면 정식 씬으로 승격하고 기존 씬은 따로 보관했습니다.</p>' },
+      { id:'balance', icon:'06', label:'밸런스 · 조정 기록', html:
+        '<p>밸런스 시트(라운드 표·전투 공식·유닛 스탯)를 관리하면서, 시트와 게임 수치가 어긋나지 않도록 시트에서 출발하는 도구들을 만들었습니다.</p><div class="dsteps"><div class="dstep"><span class="n">01</span><b>밸런스 시트</b><span>라운드별 물량·용사 배율·직업 구성의 원본</span></div><div class="dstep"><span class="n">02</span><b>생성기 (Python)</b><span>시트를 읽어 난이도 3종 스테이지 에셋, 라운드 배율 CSV, 테스트 씬 3개를 만듭니다. 이름 기반 고정 GUID라 다시 돌려도 참조가 안 깨집니다.</span></div><div class="dstep"><span class="n">03</span><b>전투 시뮬레이터</b><span>체력·공격·공속·방어·사거리·광역 스탯으로 스킬 없이 이 물량을 깰 수 있는지 계산합니다.</span></div><div class="dstep"><span class="n">04</span><b>물량 자동 튜너</b><span>시뮬레이터로 라운드별 물량을 이분 탐색해 시트에 다시 씁니다.</span></div><div class="dstep"><span class="n">05</span><b>테스트 루프 씬</b><span>로비 → 난이도 선택 → 인게임. 마왕 레벨·특성·시너지·증강 표시, 배속, 전투 기록 CSV.</span></div></div><div class="dwhy"><b>왜 이렇게 했는가</b>시뮬레이터로 <b>스킬·증강 없이도 깰 수 있는 물량 상한</b>을 먼저 잡았습니다. 성장 요소는 그 위에 얹는 여유가 되어야 플레이어가 막혔을 때 성장으로 뚫는 경험이 생기기 때문입니다. 실제 지형 재현 대신 누가 누구를 몇 초에 잡는지만 계산하는 간이 모델로 만들고, 최종 판정은 테스트 루프 씬에서 직접 플레이로 확인했습니다.</div><div class="dcase"><span class="dcase-tag balance">밸런싱</span><h4>합성할수록 눈덩이처럼 강해지는 문제</h4><dl class="dlog"><div><dt>발견</dt><dd>같은 성급 2기를 합치면 1기가 되는데, 2성 배율이 ×2.1이라 합성 전 두 기의 합보다 강했습니다. 테스트에서 합성만 반복하면 후반이 너무 쉬워졌습니다.</dd></div><div><dt>조정</dt><dd>2성 ×2.1 → ×1.7, 3성 ×4.5 → ×3.2. 합성은 칸을 아끼는 대신 순수 전투력은 조금 손해 보는 선택이 되도록 했습니다.</dd></div></dl></div><div class="dcase"><span class="dcase-tag balance">밸런싱</span><h4>16라운드까지 용사가 강해지지 않던 물량 곡선</h4><dl class="dlog"><div><dt>발견</dt><dd>이전 곡선은 물량이 상한에 닿기 전까지 용사 체력을 고정해서, 초중반 내내 용사가 그대로라는 피드백을 받았습니다.</dd></div><div><dt>조정</dt><dd>라운드마다 꾸준히 오르는 체력·공격 곡선을 직접 지정하고, 물량은 그 스탯에서 스킬 없이 깨지는 최대치를 자동으로 찾게 했습니다. 플레이로 확인한 1·2라운드 물량은 고정했습니다.</dd></div></dl></div><div class="dcase"><span class="dcase-tag balance">밸런싱</span><h4>처치 시 쿨타임 감소 증강이 너무 강함</h4><dl class="dlog"><div><dt>발견</dt><dd>처형·학살 재충전 증강을 고르면 용사가 몰려오는 후반에 스킬을 쉬지 않고 쓸 수 있었습니다.</dd></div><div><dt>조정</dt><dd>처치당 쿨타임 감소를 −1초 → −0.3초, −2.5초 → −0.8초로 하향. 대신 마왕 레벨당 스킬 피해 +4%를 붙여 성장과 스킬 체감을 연결했습니다.</dd></div></dl></div>' },
+      { id:'direction', icon:'07', label:'연출 · UX 기획', html:
+        '<div class="dcards"><div><b>마왕 튜토리얼</b><span>실제 마왕 프리팹을 살아 움직이는 초상화로 띄워 대사로 설명합니다. 첫 배치·첫 전투·첫 보상·첫 보스 같은 상황을 감지해 한 번만 나오고, 설명 대상 UI는 주변을 어둡게 해 강조합니다.</span></div><div><b>오프닝 스토리</b><span>배경 위에 실제 마왕·마왕군·용사 프리팹을 실시간으로 얹은 컷신. 용사 침공 장면은 3줄 행렬, 횃불, 먼지, 경보 연출.</span></div><div><b>로딩 화면</b><span>모든 씬 이동에 적용. 실제 비동기 로딩 진행도를 따르되, 마왕이 로딩 바 위를 0%에서 100%까지 달리도록 최소 연출 시간을 둡니다.</span></div><div><b>웨이브 배너</b><span>팀원의 승리 결과창 아트를 재사용해 UI와 한 벌로 보이게 했습니다. 보스 웨이브는 경고 줄무늬와 붉은 화면 가장자리.</span></div><div><b>카메라 자동 구도</b><span>마왕군과 가까운 용사들을 한 화면에 담도록 거리와 중심을 계산합니다. 범위는 시간 평균, 작은 변화는 무시, 확대는 느리게·축소는 빠르게.</span></div><div><b>체력바 · 전투 피드백</b><span>깎인 만큼 노란 잔상이 잠깐 머문 뒤 줄어드는 체력바, 묶어서 보여 주는 피해 숫자, 마지막 처치 슬로모션, 스킬 시전 화면 펀치.</span></div></div><p>튜토리얼 초상화는 프리팹을 복제한 뒤 그림과 애니메이터만 남기고 스크립트·충돌체를 지워(전투에 등록되지 않게) 화면 밖 카메라로 RenderTexture에 그립니다. 애니메이터를 <code>UnscaledTime</code>으로 돌려서 설명 중 게임이 멈춰도 마왕은 움직이고, 같은 방식을 오프닝 스토리와 로딩 화면에서도 재사용했습니다.</p>' },
+      { id:'learn', icon:'08', label:'배운 점', html:
+        '<p>혼자 만들 때는 시스템을 씬에 바로 붙여도 됐지만, 다섯 명이 동시에 만드는 프로젝트에서는 <b>다른 사람의 일정에 내 검증이 묶이지 않게 하는 구조</b>가 먼저였습니다. 코어를 순수 C#으로 떼어 놓은 덕분에 실제 전투가 완성되기 전에 성장 시스템을 끝낼 수 있었습니다.</p><p>남의 코드에 기능을 붙일 때는 많이 고치는 것보다, 값이 없으면 원래대로 도는 작은 접점을 만들고 그 사실을 커밋에 분명히 적는 편이 팀 전체 속도를 지킨다는 것을 배웠습니다. 밸런스도 감으로 숫자를 바꾸기보다 시트에서 출발해 시뮬레이션과 플레이로 확인하는 반복 구조를 만들어 두니, 피드백이 들어왔을 때 근거를 갖고 조정할 수 있었습니다.</p>' }
+    ]
+  }
+};
+
+
+
+/* ── AI 활용 탭 ──────────────────────────────────────────────
+   게임이 아니라 작업 방식을 설명하는 항목이라 keyArt 없이 같은 상세 창을 쓴다.
+   숫자는 각 저장소에서 git log 로 센 값(Co-Authored-By: Claude 표기가 있는 커밋)이다. */
+PROJECTS.ai = {
+  kicker: 'AI WORKFLOW', title: 'AI\n활용', name: 'AI 활용', sub: 'Claude Code · 어디까지 맡기고 어디서 직접 확인했나',
+  tagline: 'Claude Code를 페어 프로그래밍 도구로 쓰되, 결정과 검증은 직접',
+  intro: '구현은 AI와 함께, 결정과 검증은 제가 맡는 방식으로 일했습니다. 다섯 작품 모두 Claude Code를 썼습니다. 그중 커밋 기록으로 확인되는 작은 왕국(1인)과 용사 때문에 레벨업(5인 팀)을 중심으로 적었고, 이 포트폴리오의 영상 편집과 정리에도 같은 도구를 썼습니다. 무엇을 맡겼고 무엇은 맡기지 않았는지, 그리고 AI 때문에 실제로 겪은 문제와 그걸 막은 규칙을 그대로 적었습니다.',
+  spec: [['도구','Claude Code (AI 페어 프로그래밍)'],['쓴 곳','다섯 작품 전부 · 이 포트폴리오'],['원칙','결정은 사람 · 검증은 플레이 · 규칙은 문서에'],['수업','넥스트러너스 · AI를 활용한 차세대 스마트 게임 개발자 양성과정 5기']],
+  sections: [
+    { id:'num', icon:'01', label:'숫자로 보기', html:
+      '<p>기록으로 확인되는 부분만 적었습니다. 커밋 메시지에 <code>Co-Authored-By: Claude</code> 표기가 남은 커밋을 저장소에서 직접 센 값이라, 표기 없이 쓴 경우는 빠져 있습니다. 위치 크로니클과 라스트 글래디에이터는 저장소에 표기를 남기지 않아 숫자로는 확인되지 않습니다.</p>' +
+      '<div class="dcards">' +
+      '<div><b>용사 때문에 레벨업</b><span>내 커밋 102개(머지 제외) 중 98개에 AI 공동 작성 표기 (2026.09.08 ~ 10.14, 5인 팀 저장소)</span></div>' +
+      '<div><b>작은 왕국</b><span>커밋 31개(머지 제외) 중 12개에 표기 (2026.08.25 ~ 09.06, 1인 개발). 표기 없이 쓴 작업도 많았습니다</span></div>' +
+      '<div><b>작은 왕국 코드 구성</b><span>런타임 4,851줄 · 에디터 도구 7,046줄(메뉴 58개) · 주석 1,680줄</span></div>' +
+      '<div><b>용사 때문에 레벨업 코드</b><span>내가 만든 C# 134개 파일, 약 30,900줄 (스킬·특성·증강·시너지·UI 연동)</span></div>' +
+      '</div>' },
+    { id:'rules', icon:'02', label:'지킨 원칙 4가지', html:
+      '<div class="dsteps">' +
+      '<div class="dstep"><span class="n">RULE 1</span><b>결정은 내가</b><span>장르, 코어 루프, 성장 축, 밸런스 방향은 AI에게 묻지 않고 제가 정합니다. AI에게는 결정된 설계를 코드로 옮기게 합니다.</span></div>' +
+      '<div class="dstep"><span class="n">RULE 2</span><b>검증은 직접 플레이로</b><span>AI는 Unity 에디터를 실행하거나 클릭할 수 없습니다. 동작 확인과 체감 판단은 Play 모드에서 제가 합니다.</span></div>' +
+      '<div class="dstep"><span class="n">RULE 3</span><b>규칙은 문서에 고정</b><span>핵심 결정은 CLAUDE.md에 적어 두고 매번 읽게 합니다. 맥락이 끊겨도 같은 논쟁을 다시 하지 않습니다.</span></div>' +
+      '<div class="dstep"><span class="n">RULE 4</span><b>팀원 파일은 읽기만</b><span>팀 프로젝트에서는 다른 사람이 맡은 코드를 AI가 임의로 고치지 않게 했습니다. 필요하면 최소한의 연결 지점만 정해서 넣었습니다.</span></div>' +
+      '</div>' },
+    { id:'split', icon:'03', label:'맡긴 것과 직접 한 것', html:
+      '<div class="dsplit">' +
+      '<div><h5>내가 한 것</h5><ul>' +
+      '<li><b>기획·설계 결정</b>: 성장 축과 구조, 어떤 규칙을 둘지 뺄지</li>' +
+      '<li><b>밸런스 판단</b>: 체감 피드백으로 수치 방향 결정, 밸런스 시트 관리</li>' +
+      '<li><b>플레이 검증·QA</b>: 재현, 로그 확인, 최종 수용 여부</li>' +
+      '<li><b>수용과 반려</b>: 기획에 안 맞는 제안은 규칙으로 막기</li>' +
+      '<li><b>팀 접점 결정</b>: 팀원 코드와 어디서 어떻게 만날지</li></ul></div>' +
+      '<div><h5>AI와 같이 한 것</h5><ul>' +
+      '<li><b>구현·리팩터링</b>: 결정된 설계를 코드로, 반복되는 수정</li>' +
+      '<li><b>정적 분석</b>: 씬·에셋 파일까지 읽어 참조 관계 추적</li>' +
+      '<li><b>전수 점검</b>: 키워드 전수 검색으로 미구현 항목 찾기</li>' +
+      '<li><b>도구 코드</b>: 에디터 메뉴, 에셋·씬 생성기, 시뮬레이터</li>' +
+      '<li><b>문서 정리</b>: 설계 근거, 팀 가이드, 트러블슈팅 기록 초안</li></ul></div></div>' },
+    { id:'flow', icon:'04', label:'작업 흐름', html:
+      '<div class="dsteps">' +
+      '<div class="dstep"><span class="n">01</span><b>결정</b><span>무엇을 만들지, 어떤 규칙인지 제가 정하고 문서에 적습니다</span></div>' +
+      '<div class="dstep"><span class="n">02</span><b>구현 요청</b><span>범위를 좁혀서 맡깁니다. 한 번에 한 시스템씩 지시합니다</span></div>' +
+      '<div class="dstep"><span class="n">03</span><b>직접 플레이</b><span>Play 모드에서 실행해 보고 로그와 체감을 확인합니다</span></div>' +
+      '<div class="dstep"><span class="n">04</span><b>피드백</b><span>"이펙트는 나오는데 효과가 없다"처럼 현상을 그대로 전달합니다</span></div>' +
+      '<div class="dstep"><span class="n">05</span><b>원인 확인</b><span>고쳐진 결과를 코드로 읽고, 이유를 설명할 수 있을 때만 받아들입니다</span></div>' +
+      '</div>' },
+    { id:'cases', icon:'05', label:'실제로 겪은 일', html:
+      '<div class="dpanel"><h4>1 · AI가 에디터를 못 눌러서 구조가 바뀐 일 (작은 왕국)</h4>' +
+      '<p style="font-size:13px;color:var(--muted)">"이 버튼을 여기 배치해줘"를 AI가 직접 할 수 없어서, 씬 구성과 아트 임포트를 전부 메뉴로 실행되는 에디터 스크립트로 만들었습니다. 결과적으로 씬 구성 자체가 다시 실행할 수 있는 코드가 됐고, 혼자서도 반복 작업 없이 콘텐츠를 늘릴 수 있었습니다.</p>' +
+      '<div class="dspec"><div><dt>에디터 메뉴</dt><dd>58개</dd></div><div><dt>에디터 도구</dt><dd>7,046줄</dd></div><div><dt>런타임 코드</dt><dd>4,851줄</dd></div></div></div>' +
+      '<div class="dpanel"><h4>2 · 걷어낸 기능을 AI가 다시 제안한 일 (작은 왕국)</h4>' +
+      '<p style="font-size:13px;color:var(--muted)">대화가 길어져 맥락이 끊기자, AI가 "합리적으로 보이는" 제안으로 레벨업 시스템을 다시 넣자고 했습니다. 그건 일부러 뺀 축이었습니다. 이후 핵심 결정을 CLAUDE.md에 적어 두고 참조하게 했습니다.</p>' +
+      '<div class="dcode-wrap" style="margin-top:12px"><div class="dcode-file"><b>CLAUDE.md</b> · 발췌</div><pre class="dcode">Merge is automatic, not player-triggered. There is no 강화/\nleveling system — it was deliberately removed.\n\nRarity(★) vs star(성) are independent axes. Keep them separate.</pre></div></div>' +
+      '<div class="dpanel"><h4>3 · 전수 검색으로 빠진 것 찾기 (작은 왕국)</h4>' +
+      '<p style="font-size:13px;color:var(--muted)">데이터에는 적혀 있는데 코드에서 쓰이지 않는 능력이 있는지 키워드 전수 검색을 맡겼고, 미구현 능력 6종을 찾았습니다. 사람이 눈으로 훑으면 놓치기 쉬운 일을 맡긴 사례입니다.</p></div>' +
+      '<div class="dpanel"><h4>4 · 컴파일러도 못 잡은 버그를 플레이로 잡은 일 (용사 때문에 레벨업)</h4>' +
+      '<p style="font-size:13px;color:var(--muted)">버프 스킬을 쓰면 이펙트와 로그는 나오는데 능력치가 그대로였습니다. 스킬 쪽은 <code>AttackSpeed</code>, 유닛 쪽은 <code>attackSpeed</code>라는 문자열 키로 값을 주고받아서 조용히 무시되고 있었습니다. 에러가 없는 종류의 문제라, 실행해서 직접 눈으로 본 것이 발견 방법이었습니다. 이후 문자열 키는 변환 함수 한 곳을 거치게 했습니다.</p></div>' +
+      '<div class="dpanel"><h4>5 · 남의 코드에는 한 줄씩만 (용사 때문에 레벨업)</h4>' +
+      '<p style="font-size:13px;color:var(--muted)">웨이브 클리어 배너를 결과창보다 먼저 띄워야 했는데, 스테이지 진행은 팀원의 비동기 상태 머신이 맡고 있었습니다. 팀원 코드를 고쳐 쓰지 않고, 배너 쪽에 대기 지점을 만든 뒤 진행 코드의 세 곳에 대기 호출 한 줄씩만 넣었습니다. 배너가 꺼져 있으면 바로 통과하고 취소도 그대로 따릅니다.</p></div>' },
+    { id:'portfolio', icon:'06', label:'이 포트폴리오도', html:
+      '<p>사이트와 영상 작업에도 같은 방식을 썼습니다. 무엇을 보여줄지는 제가 고르고, 반복 작업을 AI가 스크립트로 처리했습니다.</p>' +
+      '<div class="dcards">' +
+      '<div><b>트레일러 편집</b><span>녹화본에서 장면 구간을 고르면, 자르기·확대·장 제목 카드·자막·BGM과 효과음 합성까지 스크립트 한 번으로 다시 뽑을 수 있게 만들었습니다</span></div>' +
+      '<div><b>플레이 움짤</b><span>게임별 영상을 짧은 반복 클립과 장면별 상세 클립으로 나눠 사이트에 넣었습니다</span></div>' +
+      '<div><b>사이트 구성</b><span>섹션 구조, 상세 창, 영상 지연 재생 같은 사이트 코드를 같이 작성하고, 브라우저로 열어 동작을 확인했습니다</span></div>' +
+      '<div><b>로고 이미지</b><span>용사 때문에 레벨업의 로고 이미지는 AI로 생성했고, 사이트에도 그렇게 표기했습니다</span></div>' +
+      '</div>' },
+    { id:'limits', icon:'07', label:'한계와 책임', html:
+      '<div class="dsplit">' +
+      '<div><h5>AI가 못 하는 것</h5><ul>' +
+      '<li>에디터 실행, 클릭, 플레이 확인</li>' +
+      '<li>대화가 길어졌을 때 이미 내린 결정을 기억하기</li>' +
+      '<li>"이게 재미있는가"의 판단</li></ul></div>' +
+      '<div><h5>그래서 제가 하는 것</h5><ul>' +
+      '<li>실행하고 눈으로 확인하기</li>' +
+      '<li>결정을 문서에 적어 두기</li>' +
+      '<li>체감과 수치 방향을 직접 판단하기</li></ul></div></div>' +
+      '<div class="dwhy"><b>책임은 제게 있습니다</b>AI가 쓴 코드도 제 이름으로 커밋되는 코드입니다. 코드마다 왜 이렇게 했는지 설명을 받아 두고, 제 말로 다시 설명할 수 있는 만큼만 가져갑니다. 설명하지 못하는 코드는 쓰지 않습니다.</div>' },
+    { id:'learn', icon:'08', label:'배운 점', html:
+      '<ul class="log-list">' +
+      '<li><i>▸</i><span><b>맡기는 단위를 좁힐수록 결과가 좋았습니다.</b> 한 번에 시스템 하나, 완료 조건은 눈으로 확인 가능한 것으로 정했습니다.</span></li>' +
+      '<li><i>▸</i><span><b>문서가 AI의 기억입니다.</b> 말로 한 결정은 사라지고 CLAUDE.md에 적은 결정만 남았습니다.</span></li>' +
+      '<li><i>▸</i><span><b>제약이 구조를 좋게 만들기도 합니다.</b> 에디터를 못 눌러서 만든 자동화가 재현 가능한 씬 구성이 됐습니다.</span></li>' +
+      '<li><i>▸</i><span><b>빨리 만들수록 검증이 더 중요합니다.</b> 에러 없이 조용히 틀리는 버그는 실행해 보기 전에는 보이지 않았습니다.</span></li></ul>' }
+  ]
+};
+
+/* AI 활용 섹션: 본문에는 요약 카드만 두고, 누르면 PROJECTS.ai 상세 창이 열린다 */
+(function () {
+  var host = document.getElementById('ai-body');
+  if (!host) return;
+  var a = PROJECTS.ai;
+  var chips = a.sections.map(function (s) { return '<span>' + s.icon + ' ' + s.label + '</span>'; }).join('');
+  host.innerHTML =
+    '<button type="button" class="aicard" data-open="ai" aria-label="AI 활용 자세히 보기">' +
+      '<p class="aic-lead">구현은 AI와 함께, <b>결정과 검증은 직접</b>. 다섯 작품과 이 포트폴리오에 Claude Code를 썼습니다.</p>' +
+      '<div class="aic-label">자세히 보기에서 볼 수 있는 내용</div>' +
+      '<div class="tagrow aic-chips">' + chips + '</div>' +
+      '<span class="proj-open">자세히 보기 ▸</span>' +
+    '</button>';
+})();
+
+/* ── 작품 정보(모든 작품 공통 표기): 확인할 수 있는 것 · 내 담당 · 사용 도구 · AI ─────────────
+   사이트 안의 영상 개수는 각 상세의 '플레이 영상' 섹션에서 세어 채운다. */
+function clipCount(key) {
+  var s = PROJECTS[key].sections.filter(function (x) { return x.id === 'clips'; })[0];
+  return s ? (s.html.match(/<video/g) || []).length : 0;
+}
+function inSite(key) { return '<button type="button" class="linkbtn" data-goto="clips">사이트 내 플레이 영상 ' + clipCount(key) + '개 ▾</button>'; }
+
+PROJECTS.kingdom.facts = {
+  verify: '<a href="https://youtu.be/5jOvFMwxCXs" target="_blank" rel="noopener">플레이 영상(YouTube) ↗</a> · ' + inSite('kingdom') + ' · <a href="https://github.com/jsmjsm812/TinyKingdom/releases" target="_blank" rel="noopener">Android 빌드(릴리스) ↗</a> · <a href="https://github.com/jsmjsm812/TinyKingdom" target="_blank" rel="noopener">코드 저장소 ↗</a>',
+  role: '기획 · 클라이언트 개발 · 아트 파이프라인 · 에디터 툴링 · 밸런싱 전부 (1인 개발)',
+  tools: 'Unity 6 · C# · UGUI · ScriptableObject · Editor Scripting · 오브젝트 풀링 · JSON · Git · GitHub',
+  ai: '<b>Claude Code</b> 사용. 기획·검증·밸런스는 직접 하고, 구현과 정적 분석은 AI와 분업했습니다. 커밋 31개(머지 제외) 중 12개에 공동 작성 표기가 남아 있습니다.'
+};
+PROJECTS.gladiator.facts = {
+  verify: '<a href="https://youtu.be/g3t2Uxi8HEQ" target="_blank" rel="noopener">플레이 영상(YouTube) ↗</a> · ' + inSite('gladiator') + ' · <a href="https://github.com/jsmjsm812/LAST-GLADIATOR" target="_blank" rel="noopener">코드 저장소 ↗</a>',
+  role: '팀장 · 기획(컨셉, 전투 규칙, 스테이지 밸런싱) · 클라이언트(Player·Enemy 전투 전담: 패링 0.2초 판정, 15-state FSM 적 AI, 스킬 데이터 구조)',
+  notmine: '파트너가 GitHub Issue 단위로 나눠 맡은 나머지 작업 (2인 팀)',
+  tools: 'Unity 6 · C# · ScriptableObject · FSM · Cinemachine · Animator Controller · JSON · Plastic SCM',
+  ai: '<b>Claude Code</b> 사용. 저장소에는 공동 작성 표기를 남기지 않아 커밋 수로는 확인되지 않습니다.'
+};
+PROJECTS.chronicle.facts = {
+  verify: '<a href="https://youtu.be/kNYvXD6YcRg" target="_blank" rel="noopener">플레이 영상(YouTube) ↗</a> · ' + inSite('chronicle') + ' · <a href="https://github.com/jsmjsm812/WitchChronicle" target="_blank" rel="noopener">코드 저장소 ↗</a>',
+  role: '팀장 · 세계관과 전체 기획 · 전투 규칙 설계 · 라이프 시스템 구현(파밍·낚시·연금술) · 스킬 데이터 67종의 ID 체계와 자동 등록',
+  notmine: '전투 규칙의 코드 구현(전투 실행 로직) 등 나머지 파트는 팀원 (5인 팀)',
+  tools: 'Unity 6 · C# · ScriptableObject · DateTime · Dictionary · Cinemachine · JSON · Git · Git LFS',
+  ai: '<b>Claude Code</b> 사용. 저장소에는 공동 작성 표기를 남기지 않아 커밋 수로는 확인되지 않습니다.'
+};
+PROJECTS.mawang.facts = {
+  verify: inSite('mawang') + ' · STOVE 출시 예정 (스토어 링크는 출시 후 추가) · <a href="https://github.com/OZ-GAME-LAB/OZGL2_1" target="_blank" rel="noopener">코드 저장소 ↗</a>',
+  role: '마왕 성장 시스템 전체(스킬·레벨업·특성·증강·시너지) · 밸런스 · 인게임 연출과 UX · QA',
+  notmine: '그리드 배치·합성, 코어 루프, 유닛 전투와 AI, 사운드, UI 아트는 팀원 (5인 팀)',
+  tools: 'Unity 6 · C# · URP · New Input System · ScriptableObject · Python(밸런스 시뮬레이터·튜너) · Excel 밸런스 시트 · Git · GitHub',
+  ai: '<b>Claude Code</b> 사용. 설계·밸런스·플레이 검증은 직접 하고, 구현과 도구 코드는 AI와 분업했습니다. 내 커밋 102개(머지 제외) 중 98개에 공동 작성 표기가 남아 있고, 타이틀 로고 이미지는 AI로 생성했습니다.'
+};
+
+PROJECTS.maple.facts = {
+  verify: inSite('maple') + ' · <a href="https://github.com/jsmjsm812/Maple-Survivor_jsm" target="_blank" rel="noopener">Windows 빌드와 소개 파일(저장소) ↗</a>',
+  role: '1인 개발 · 기획 · 구현 · 밸런스 · 빌드',
+  notmine: '맵 타일과 소품 일부는 외부 에셋 패키지, 몬스터 소재는 메이플스토리 (공개 저장소에는 소스 없이 빌드만 있음)',
+  tools: 'Unity 6 (6000.3.9f1) · C# · 2D Physics · ScriptableObject · TextMeshPro · New Input System · PlayerPrefs · Git',
+  ai: '<b>Claude Code</b> 사용. 저장소에는 완성 빌드만 올려 커밋 기록으로는 확인되지 않습니다.'
+};
+
+/* ── 상세 오버레이 ─────────────────────────────────────────── */
+(function () {
+  var ov = document.getElementById('overlay');
+  var titleEl = document.getElementById('d-title');
+  var subEl = document.getElementById('d-sub');
+  var navEl = document.getElementById('d-nav');
+  var bodyEl = document.getElementById('d-body');
+  var scroller = document.getElementById('d-scroll');
+  var closeBtn = document.getElementById('d-close');
+  var last = null, spy = null;
+
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+  // 작품 정보 박스: 모든 작품이 같은 항목으로 담당 범위, 사용 도구, AI 사용을 밝힌다
+  function factsHtml(f) {
+    var rows = [['확인할 수 있는 것', f.verify], ['내 담당', f.role], ['맡지 않은 부분', f.notmine], ['사용 도구', f.tools], ['AI 사용', f.ai]];
+    return '<dl class="dfacts"><h4>작품 정보</h4>' + rows.filter(function (r) { return r[1]; }).map(function (r) {
+      return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>';
+    }).join('') + '</dl>';
+  }
+
+  // 실제 스크린샷 주입. GAME_IMG는 이 스크립트보다 먼저 로드된 별도 <script>가 정의한다.
+  function hydrateImages(root) {
+    if (typeof GAME_IMG === 'undefined') return;
+    var els = (root || document).querySelectorAll('img[data-img]');
+    for (var i = 0; i < els.length; i++) {
+      var key = els[i].getAttribute('data-img');
+      if (GAME_IMG[key] && !els[i].src) els[i].src = GAME_IMG[key];
+    }
+  }
+  hydrateImages(document); // 정적 카드 커버(프로젝트 인덱스)
+
+  // 움짤: 화면에 보일 때만 불러와 재생하고, 벗어나면 멈춘다(데이터·배터리 절약). 동작 줄이기 설정이면 이미지만 둔다.
+  var loopIO = null;
+  function initLoops(root) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var vids = (root || document).querySelectorAll('video[data-src]');
+    if (!('IntersectionObserver' in window)) return;
+    if (!loopIO) {
+      loopIO = new IntersectionObserver(function (es) {
+        es.forEach(function (en) {
+          var v = en.target;
+          if (en.isIntersecting) {
+            if (!v.src) v.src = v.getAttribute('data-src');
+            var pr = v.play(); if (pr && pr.catch) pr.catch(function () {});
+          } else if (v.src) { v.pause(); }
+        });
+      }, { rootMargin: '120px' });
+    }
+    for (var i = 0; i < vids.length; i++) {
+      var v = vids[i];
+      if (v.__loop) continue;
+      v.__loop = true;
+      v.addEventListener('playing', function () { this.classList.add('on'); });
+      loopIO.observe(v);
+    }
+  }
+  initLoops(document);
+
+  function render(key) {
+    var p = PROJECTS[key];
+    if (!p) return;
+
+    titleEl.textContent = p.title;
+    subEl.textContent = p.sub;
+
+    navEl.innerHTML = '';
+    var html = '';
+
+    // 상세 히어로 — 배너 이미지(위) + 본문(아래). super_dreamer_v3 의 .project-hero 구조.
+    html += '<div class="detail-hero">' +
+      '<div class="pj-hero' + (p.keyArt ? '' : ' noart') + '">' +
+      (p.keyArt ? '<img data-img="' + p.keyArt + '" alt="' + esc(p.name) + ' 타이틀 아트">' : '') +
+      '<div class="pj-hero-overlay"></div>' +
+      '<div class="pj-hero-badges"><span class="block-kicker" style="margin:0">' + (p.kicker || 'PROJECT DETAIL') + '</span></div>' +
+      '<div class="detail-hero-title"><h2>' + esc(p.title).replace(/\n/g, '<br>') + '</h2>' +
+      '<p class="sub">' + esc(p.name) + ' · ' + esc(p.tagline) + '</p></div>' +
+      '</div>' +
+      '<div class="detail-hero-body">' +
+      '<p class="d">' + esc(p.intro) + '</p>' +
+      '<dl class="dspec">' + p.spec.map(function (s) {
+        // youtu.be / github.com 값은 클릭 가능한 링크로. 채용 담당자가 주소를
+        // 복사해서 붙여넣게 만들면 대부분 그냥 안 본다.
+        var v = esc(s[1]);
+        if (/^(youtu\.be|github\.com)\//.test(s[1])) {
+          v = '<a href="https://' + esc(s[1]) + '" target="_blank" rel="noopener">' + esc(s[1]) + ' ↗</a>';
+        }
+        return '<div><dt>' + esc(s[0]) + '</dt><dd>' + v + '</dd></div>';
+      }).join('') + '</dl>' +
+      (p.facts ? factsHtml(p.facts) : '') +
+      '</div></div>';
+
+    p.sections.forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = s.label;
+      b.setAttribute('data-goto', s.id);
+      if (i === 0) b.setAttribute('aria-current', 'true');
+      navEl.appendChild(b);
+      html += '<section class="dsec" id="ds-' + s.id + '"><h3><i>' + s.icon + '</i>' + esc(s.label) + '</h3>' + s.html + '</section>';
+    });
+
+    // 다른 작품
+    html += '<section class="dsec"><h3><i>+</i>다른 작품</h3><div class="dnext">';
+    Object.keys(PROJECTS).forEach(function (k) {
+      if (k === key || k === 'ai') return;
+      html += '<button type="button" data-open="' + k + '"><b>' + esc(PROJECTS[k].name) + '</b><span>' + esc(PROJECTS[k].tagline) + '</span></button>';
+    });
+    html += '</div></section>';
+
+    bodyEl.innerHTML = html;
+    hydrateImages(bodyEl);
+    initLoops(bodyEl);
+    scroller.scrollTop = 0;
+    attachSpy();
+  }
+
+  function attachSpy() {
+    if (spy) spy.disconnect();
+    var secs = [].slice.call(bodyEl.querySelectorAll('.dsec')).slice(0, -1);
+    var btns = [].slice.call(navEl.querySelectorAll('button'));
+    spy = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var i = secs.indexOf(en.target);
+        if (i < 0 || !btns[i]) return;
+        btns.forEach(function (b) { b.removeAttribute('aria-current'); });
+        btns[i].setAttribute('aria-current', 'true');
+      });
+    }, { root: scroller, rootMargin: '-8% 0px -72% 0px' });
+    secs.forEach(function (s) { spy.observe(s); });
+  }
+
+  function open(key) {
+    last = document.activeElement;
+    render(key);
+    ov.hidden = false;
+    if (window.__revealDetail) window.__revealDetail();
+    document.body.classList.add('locked');
+    // 상세를 열면 배경이 그 게임의 씬으로 전환된다
+    if (window.__setScene) window.__setScene(key);
+    closeBtn.focus();
+  }
+  function close() {
+    ov.hidden = true;
+    document.body.classList.remove('locked');
+    if (spy) { spy.disconnect(); spy = null; }
+    if (window.__setScene) window.__setScene(null);
+    if (last) last.focus();
+  }
+
+  document.addEventListener('click', function (e) {
+    var o = e.target.closest('[data-open]');
+    if (o) { open(o.getAttribute('data-open')); return; }
+    var g = e.target.closest('[data-goto]');
+    if (g) {
+      var t = document.getElementById('ds-' + g.getAttribute('data-goto'));
+      if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (e.target === ov) close();
+  });
+  closeBtn.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !ov.hidden) close();
+  });
+})();
+
+/* ── 프로젝트 필터 ─────────────────────────────────────────── */
+(function () {
+  var g = document.querySelector('.filters');
+  if (!g) return;
+  var btns = g.querySelectorAll('button');
+  var cards = document.querySelectorAll('.proj[data-cat]');
+  g.addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    var f = b.getAttribute('data-filter');
+    btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    cards.forEach(function (c) {
+      c.hidden = !(f === 'all' || c.getAttribute('data-cat') === f);
+    });
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   배경 씬 + 시차 + 스크롤 워커
+   스크롤 리스너를 직접 달지 않고 ScrollTrigger 로 처리한다.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stage = document.getElementById('stage');
+  var walker = document.getElementById('walker');
+  var charEl = document.getElementById('walk-char');
+  var track = document.getElementById('walk-track');
+  var label = document.getElementById('walk-label');
+  if (!stage) return;
+
+  var scenes = {};
+  [].forEach.call(stage.querySelectorAll('.scene'), function (s) {
+    scenes[s.getAttribute('data-scene')] = s;
+  });
+
+  var LABEL = { home: 'ROOT', gladiator: 'ARENA', chronicle: 'ACADEMY', kingdom: 'KINGDOM' };
+  var TINT  = { home: '255,107,53', gladiator: '255,107,53', chronicle: '79,214,192', kingdom: '255,198,61' };
+  var current = 'home';
+  var forced = null;   // 상세 오버레이가 씬을 강제할 때 사용
+
+  function setScene(key) {
+    if (!scenes[key] || current === key) return;
+    if (scenes[current]) scenes[current].classList.remove('is-on');
+    scenes[key].classList.add('is-on');
+    current = key;
+    if (label) label.textContent = LABEL[key] || key;
+    document.documentElement.style.setProperty('--tint-ui', TINT[key] || TINT.home);
+  }
+  // 상세 오버레이에서 호출한다
+  window.__setScene = function (key) {
+    if (key === null) { forced = null; if (lastNatural) setScene(lastNatural); return; }
+    forced = key; setScene(key);
+  };
+
+  /* ── 섹션 → 씬 전환 ─────────────────────────────────────── */
+  var lastNatural = 'home';
+  var sections = [].slice.call(document.querySelectorAll('[data-scene]')).filter(function (el) {
+    return !el.classList.contains('scene');
+  });
+  var sceneSpy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      lastNatural = en.target.getAttribute('data-scene');
+      if (!forced) setScene(lastNatural);
+    });
+  }, { rootMargin: '-35% 0px -45% 0px' });
+  sections.forEach(function (s) { sceneSpy.observe(s); });
+
+  /* ── 진행도 눈금: 섹션 위치에 마커를 찍는다 ──────────────── */
+  function buildMarks() {
+    if (!track) return;
+    track.innerHTML = '';
+    var docH = Math.max(1, document.body.scrollHeight - window.innerHeight);
+    sections.forEach(function (s) {
+      var top = s.getBoundingClientRect().top + window.scrollY;
+      var at = Math.min(100, Math.max(0, (top / docH) * 100));
+      var m = document.createElement('span');
+      m.className = 'walk-mark';
+      m.style.setProperty('--at', at + '%');
+      m.dataset.at = at;
+      track.appendChild(m);
+    });
+  }
+  buildMarks();
+  window.addEventListener('resize', buildMarks);
+
+  /* ── 시차 + 워커 위치 ───────────────────────────────────── */
+  var marks = function () { return track ? track.querySelectorAll('.walk-mark') : []; };
+  var walkTimer = null, lastP = 0;
+
+  function apply(p) {
+    // 레이어 시차: 스크롤 진행도에 비례해 각 층이 다른 거리만큼 밀린다
+    if (!reduced) stage.style.setProperty('--py', (-p * 170) + 'px');
+
+    if (charEl) {
+      var w = charEl.clientWidth || 1;
+      charEl.style.setProperty('--walk', (p * (w - 34)) + 'px');
+      charEl.style.setProperty('--face', p < lastP ? -1 : 1);
+    }
+    [].forEach.call(marks(), function (m) {
+      m.classList.toggle('passed', p * 100 >= parseFloat(m.dataset.at) - 0.5);
+    });
+
+    if (!reduced && Math.abs(p - lastP) > 0.0004) {
+      walker.classList.add('is-walking');
+      clearTimeout(walkTimer);
+      walkTimer = setTimeout(function () { walker.classList.remove('is-walking'); }, 150);
+    }
+    lastP = p;
+  }
+
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.create({
+      trigger: document.body, start: 'top top', end: 'bottom bottom',
+      onUpdate: function (self) { apply(self.progress); },
+      onRefresh: buildMarks
+    });
+  } else {
+    // GSAP 이 막히면 옵저버 기반으로만 동작시킨다
+    apply(0);
+  }
+
+  /* ── 마우스 시차 ────────────────────────────────────────── */
+  if (!reduced && window.matchMedia('(hover: hover)').matches) {
+    var tx = 0, cx = 0, raf = null;
+    window.addEventListener('pointermove', function (e) {
+      tx = (e.clientX / window.innerWidth - 0.5) * -46;
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    function loop() {
+      cx += (tx - cx) * 0.06;
+      stage.style.setProperty('--mx', cx.toFixed(2) + 'px');
+      raf = Math.abs(tx - cx) > 0.2 ? requestAnimationFrame(loop) : null;
+    }
+  }
+})();
+
+/* ── 네비 현재 위치 ────────────────────────────────────────── */
+(function () {
+  var links = [].slice.call(document.querySelectorAll('.topnav a'));
+  var targets = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  var spy = new IntersectionObserver(function (es) {
+    es.forEach(function (en) {
+      var i = targets.indexOf(en.target);
+      if (i < 0 || !en.isIntersecting) return;
+      links.forEach(function (a) { a.removeAttribute('aria-current'); });
+      links[i].setAttribute('aria-current', 'true');
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  targets.forEach(function (t) { if (t) spy.observe(t); });
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   콘텐츠 등장 모션
+   - 첫 화면: 이름 글자가 하나씩 찍히고, 나머지 요소가 순서대로 올라온다
+   - 스크롤: 카드가 화면에 들어올 때 한 번만 나타난다 (ScrollTrigger.batch)
+   - 숫자 카운트, 프로젝트 필터 전환, 상세 창 섹션 순차 등장
+   모션 줄이기 설정이면 전부 건너뛰고, GSAP이 막혀도 내용은 그대로 보인다.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var EASE = 'power3.out';
+
+  /* 상세 창 (GSAP 없이 CSS + 옵저버) */
+  var detailIO = null;
+  window.__revealDetail = function () {
+    if (detailIO) { detailIO.disconnect(); detailIO = null; }
+    if (reduced || !('IntersectionObserver' in window)) return;
+    var root = document.getElementById('d-scroll');
+    var secs = [].slice.call(document.querySelectorAll('#d-body .dsec'));
+    var fired = false;
+    detailIO = new IntersectionObserver(function (es) {
+      fired = true;
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('in');
+        if (detailIO) detailIO.unobserve(en.target);
+      });
+    }, { root: root, rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+    secs.forEach(function (s) { s.classList.add('rv'); detailIO.observe(s); });
+    // 관찰자가 끝내 한 번도 발동하지 않는 환경이면 내용이 투명하게 남지 않도록 전부 보여준다
+    setTimeout(function () { if (!fired) secs.forEach(function (s) { s.classList.add('in'); }); }, 1200);
+  };
+
+  if (reduced || !window.gsap) return;
+  var gsap_ = window.gsap;
+  if (window.ScrollTrigger) gsap_.registerPlugin(window.ScrollTrigger);
+
+  /* 이름 글자를 낱자로 쪼갠다 (CHO / SUNGMIN) */
+  function splitChars(el) {
+    var chars = [];
+    [].slice.call(el.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        n.textContent.split('').forEach(function (c) {
+          var s = document.createElement('span'); s.className = 'ch'; s.textContent = c; frag.appendChild(s); chars.push(s);
+        });
+        n.parentNode.replaceChild(frag, n);
+      } else if (n.nodeType === 1 && n.tagName !== 'BR') {
+        chars = chars.concat(splitChars(n));
+      }
+    });
+    return chars;
+  }
+
+  /* 1. 첫 화면 */
+  var name = document.querySelector('.hero-name');
+  var chars = name ? splitChars(name) : [];
+  var rest = [].slice.call(document.querySelectorAll('.hero-copy > *')).filter(function (e) { return e !== name; });
+  var art = document.querySelector('.art-slot');
+  var tl = gsap_.timeline({ defaults: { ease: EASE } });
+  if (rest.length) tl.from(rest[0], { autoAlpha: 0, y: 14, duration: .5 }, 0.05);
+  if (chars.length) tl.from(chars, { autoAlpha: 0, y: -26, scale: .7, duration: .45, stagger: .045, ease: 'back.out(2.2)', clearProps: 'all' }, 0.12);
+  if (rest.length > 1) tl.from(rest.slice(1), { autoAlpha: 0, y: 22, duration: .7, stagger: .09, clearProps: 'opacity,visibility,transform' }, 0.55);
+  if (art) tl.from(art, { autoAlpha: 0, x: 48, duration: 1, clearProps: 'opacity,visibility,transform' }, 0.35);
+  var heroArt = document.querySelector('.hero-art');
+  if (heroArt) gsap_.to(heroArt, { y: -8, duration: 2.8, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.4 });
+
+  if (!window.ScrollTrigger) return;
+  var ST = window.ScrollTrigger;
+
+  /* 2. 카드: 화면에 들어올 때 한 번씩 */
+  function reveal(sel, o) {
+    var els = gsap_.utils.toArray(sel);
+    if (!els.length) return;
+    gsap_.set(els, { autoAlpha: 0, y: o.y });
+    ST.batch(els, {
+      start: o.start || 'top 90%', once: true,
+      onEnter: function (batch) {
+        gsap_.to(batch, { autoAlpha: 1, y: 0, duration: o.dur || .8, ease: EASE, stagger: o.stagger, delay: o.delay || 0, overwrite: true, clearProps: 'opacity,visibility,transform' });
+      }
+    });
+  }
+  reveal('.block-board > .block-card', { y: 34, stagger: .14, dur: .9 });
+  reveal('.block-board .mini', { y: 18, stagger: .07, delay: .18 });
+  reveal('.block-board .stat', { y: 14, stagger: .07, delay: .2 });
+  reveal('.block-board .featured-points > div', { y: 14, stagger: .08, delay: .25 });
+  reveal('.block-board .proj', { y: 26, stagger: .12, delay: .15, dur: .85 });
+  reveal('.block-board .hire-facts > div', { y: 14, stagger: .08, delay: .2 });
+  reveal('.block-board .contact-grid a', { y: 14, stagger: .1, delay: .25 });
+
+  /* 3. 숫자 카운트 (3, 2 같은 숫자 통계만) */
+  gsap_.utils.toArray('.stat b').forEach(function (b) {
+    var n = parseInt(b.textContent, 10);
+    if (!/^\d+$/.test(b.textContent.trim()) || !n) return;
+    b.textContent = '0';
+    ST.create({
+      trigger: b, start: 'top 92%', once: true,
+      onEnter: function () {
+        var o = { v: 0 };
+        gsap_.to(o, { v: n, duration: 1.1, ease: 'power2.out', delay: .3, onUpdate: function () { b.textContent = Math.round(o.v); }, onComplete: function () { b.textContent = n; } });
+      }
+    });
+  });
+
+  /* 4. 프로젝트 필터를 바꿀 때 보이는 카드가 다시 올라온다 */
+  var filters = document.querySelector('.filters');
+  if (filters) filters.addEventListener('click', function () {
+    var vis = [].slice.call(document.querySelectorAll('.proj[data-cat]')).filter(function (c) { return !c.hidden; });
+    gsap_.fromTo(vis, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: .5, stagger: .07, ease: EASE, overwrite: true, clearProps: 'opacity,visibility,transform' });
+  });
+
+  window.addEventListener('load', function () { ST.refresh(); });
+})();
+</script>
+</body>
+</html>
