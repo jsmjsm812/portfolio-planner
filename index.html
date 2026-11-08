@@ -997,7 +997,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background
           </div>
         </div>
         <div class="pj-hero pj-hero-clean" style="border-radius:var(--card-radius);border:1px solid var(--line);aspect-ratio:16/9">
-          <img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트, 마왕성 성벽 위의 마왕과 마왕군, 몰려오는 용사들">
+          <img data-img="mawang_title" alt="용사 때문에 레벨업 전투 화면, 배치한 마왕군이 몰려오는 용사를 막는 모습">
           <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
         </div>
       </div>
@@ -1020,7 +1020,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background
       <div class="proj-grid">
         <button class="proj" type="button" data-cat="team" data-open="mawang">
           <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
-            <img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트">
+            <img data-img="mawang_title" alt="용사 때문에 레벨업 전투 화면">
             <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
           </div>
           <div class="proj-body">
@@ -1221,7 +1221,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background
       </div>
       <div class="clip-grid">
         <button class="clipcard" type="button" data-open="mawang">
-          <div class="cbox"><img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트"><video class="loopv" muted loop playsinline preload="none" data-src="video/mawang_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbox"><img data-img="mawang_title" alt="용사 때문에 레벨업 전투 화면"><video class="loopv" muted loop playsinline preload="none" data-src="video/mawang_play.mp4" aria-hidden="true"></video></div>
           <div class="cbody"><h4>용사 때문에 레벨업</h4><p>마왕이 되어 쳐들어오는 용사를 막는 역방향 타워 디펜스</p><span class="proj-open">영상 더 보기 ▸</span></div>
         </button>
         <button class="clipcard" type="button" data-open="kingdom">
@@ -1325,7 +1325,13 @@ var GAME_IMG = {
   lg_killcam: "img/lg_killcam.webp",
   lg_stage1: "img/lg_stage1.webp",
   wc_title: "img/wc_title.webp",
-  mawang_title: "img/mawang_title_v2.webp",
+  mawang_title: "img/mawang_title_v3.webp",
+  mawang_prep: "img/mawang_prep.webp",
+  mawang_meteor: "img/mawang_meteor.webp",
+  mawang_zero: "img/mawang_zero.webp",
+  mawang_boss_in: "img/mawang_boss_in.webp",
+  mawang_boss: "img/mawang_boss.webp",
+  mawang_reward: "img/mawang_reward.webp",
   lg_combat_fire: "img/lg_combat_fire.webp",
   lg_combat_slash: "img/lg_combat_slash.webp",
   wc_fishing_success: "img/wc_fishing_success.webp",
@@ -1563,13 +1569,15 @@ var PROJECTS = {
     spec: [['기간','2026.09.07 ~ 10.16 (6주)'],['엔진','Unity 6 · C#'],['팀','5인'],['시점','2D 탑뷰'],['상태','STOVE 출시 (2026.11.06)']],
     sections: [
       { id:'status', icon:'01', label:'진행 상황', html:
-        '<p>6주(2026.09.07 ~ 10.16) 일정으로 만든 프로젝트로, <b>2026.11.06 STOVE에 출시했습니다</b> (<a href="https://store.onstove.com/ko/games/106167" target="_blank" rel="noopener">스토어 페이지 ↗</a>). 상단 이미지는 로고(AI 생성)입니다.</p><div class="dcards"><div><b>커밋 116개</b><span>2026.09.08 ~ 10.13, 본인 작성분</span></div><div><b>Pull Request 19개</b><span>기능 브랜치 단위로 머지</span></div><div><b>C# 134파일 · 약 3만 줄</b><span>본인이 만든 파일 기준</span></div><div><b>데이터 에셋</b><span>스킬 19 · 증강 30 · 특성 40 · 시너지 12</span></div></div>' },
+        '<p>6주(2026.09.07 ~ 10.16) 일정으로 만든 프로젝트로, <b>2026.11.06 STOVE에 출시했습니다</b> (<a href="https://store.onstove.com/ko/games/106167" target="_blank" rel="noopener">스토어 페이지 ↗</a>). 화면 이미지는 STOVE 스토어에 등록한 스크린샷입니다.</p><div class="dcards"><div><b>커밋 116개</b><span>2026.09.08 ~ 10.13, 본인 작성분</span></div><div><b>Pull Request 19개</b><span>기능 브랜치 단위로 머지</span></div><div><b>C# 134파일 · 약 3만 줄</b><span>본인이 만든 파일 기준</span></div><div><b>데이터 에셋</b><span>스킬 19 · 증강 30 · 특성 40 · 시너지 12</span></div></div>' },
       { id:'role', icon:'02', label:'내 담당', html:
         '<div class="dsplit"><div><h5>내가 담당</h5><ul><li><b>마왕 성장 시스템 전체</b>: 스킬, 마왕 레벨업, 특성 트리 40노드, 증강 30종, 시너지 12종</li><li><b>실전투 통합</b>: 성장 시스템을 팀원이 만든 실제 유닛 전투에 연결</li><li><b>밸런스</b>: 밸런스 시트 관리, 시뮬레이터·생성기·테스트 루프 제작, 수치 조정</li><li><b>인게임 연출·UX</b>: 튜토리얼, 오프닝 스토리, 로딩 화면, 웨이브 배너, 카메라, 체력바</li><li><b>진행·저장</b>: 이어하기, 난이도 잠금, 기록, 마왕군 해금, 도감·업적 연동</li><li><b>QA</b>: 로비·인게임 디버그 패널, 상황 재현 도구</li></ul></div><div><h5>팀원 담당</h5><ul><li>그리드 배치와 합성, 스테이지 진행 흐름 (2인)</li><li>용사와 마왕군 전투 로직, 사운드 시스템</li><li>UI 아트와 프리팹 디자인 (저는 이 UI를 게임 로직에 연결하고 연출을 얹었습니다)</li></ul></div></div>' },
       { id:'about', icon:'03', label:'게임 소개', html:
         '<p>용사들이 마왕을 잡으러 마왕성으로 쳐들어오고, 마왕군이 이를 막는 라운드 기반 디펜스입니다. 준비 단계에서 유닛을 그리드에 배치하고 합성하며, 전투가 끝나면 보상으로 마왕군을 늘려 갑니다. 마왕은 용사를 쓰러뜨려 레벨을 올리고, 직접 스킬을 써서 전투에 개입합니다.</p><p>난이도는 보통 30라운드, 어려움 50라운드입니다. 막힌 구간은 반복 파밍 대신 스킬 조합 변경, 새로 찍은 특성, 다른 증강 선택으로 다시 공략하도록 설계했습니다.</p>' },
       { id:'clips', icon:'▶', label:'플레이 영상', html:
         '<div class="dgallery dvids"><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_1.mp4" style="aspect-ratio:16 / 9" aria-label="오프닝 스토리 · 잠든 마왕, 쳐들어오는 용사들, 마왕의 각성"></video><figcaption>오프닝 스토리 · 잠든 마왕, 쳐들어오는 용사들, 마왕의 각성</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_2.mp4" style="aspect-ratio:16 / 9" aria-label="스킬 세팅 · 봉인된 스킬을 SP로 해금하고 장착 칸에 끼우기"></video><figcaption>스킬 세팅 · 봉인된 스킬을 SP로 해금하고 장착 칸에 끼우기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_3.mp4" style="aspect-ratio:16 / 9" aria-label="특성 트리 · 40개 노드를 LP로 올리는 영구 성장"></video><figcaption>특성 트리 · 40개 노드를 LP로 올리는 영구 성장</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_4.mp4" style="aspect-ratio:16 / 9" aria-label="도감과 로딩 · 해금한 마왕군 확인, 로딩 화면의 마왕"></video><figcaption>도감과 로딩 · 해금한 마왕군 확인, 로딩 화면의 마왕</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_5.mp4" style="aspect-ratio:16 / 9" aria-label="첫 전투와 보상 카드 · 웨이브를 막고 카드 고르기"></video><figcaption>첫 전투와 보상 카드 · 웨이브를 막고 카드 고르기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_6.mp4" style="aspect-ratio:16 / 9" aria-label="준비 단계 · 마왕군을 발판에 놓고 전투 시작"></video><figcaption>준비 단계 · 마왕군을 발판에 놓고 전투 시작</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_7.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 6 · 몰려오는 용사를 마왕군과 스킬로 막기"></video><figcaption>웨이브 6 · 몰려오는 용사를 마왕군과 스킬로 막기</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_8.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 7 · 준비 단계 배치부터 연쇄 번개 전투까지"></video><figcaption>웨이브 7 · 준비 단계 배치부터 연쇄 번개 전투까지</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_9.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 8 · 더 많아진 용사, 웨이브 클리어 배너"></video><figcaption>웨이브 8 · 더 많아진 용사, 웨이브 클리어 배너</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_10.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 9 · 화염구와 배치 진형으로 막는 전투"></video><figcaption>웨이브 9 · 화염구와 배치 진형으로 막는 전투</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_11.mp4" style="aspect-ratio:16 / 9" aria-label="보스 웨이브 · 경고 배너와 보스전"></video><figcaption>보스 웨이브 · 경고 배너와 보스전</figcaption></figure><figure class="dvidf"><video class="dvid" muted loop playsinline preload="none" data-src="video/mawang_12.mp4" style="aspect-ratio:16 / 9" aria-label="웨이브 11 · 드래그로 화염구·연쇄 번개·운석 시전"></video><figcaption>웨이브 11 · 드래그로 화염구·연쇄 번개·운석 시전</figcaption></figure></div>' },
+      { id:'shots', icon:'▣', label:'화면', html:
+        '<div class="dgallery"><figure class="rshot"><img data-img="mawang_prep" alt="준비 단계. 마왕군을 배치하고 이번 웨이브 구성과 라운드 보상을 확인" loading="lazy"><figcaption>준비 단계. 마왕군을 배치하고 이번 웨이브 구성과 라운드 보상을 확인</figcaption></figure><figure class="rshot"><img data-img="mawang_meteor" alt="스킬 운석 낙하. 용사 무리 위로 범위 피해" loading="lazy"><figcaption>스킬 운석 낙하. 용사 무리 위로 범위 피해</figcaption></figure><figure class="rshot"><img data-img="mawang_zero" alt="스킬 절대 영도. 화면 전체 범위로 적을 얼림" loading="lazy"><figcaption>스킬 절대 영도. 화면 전체 범위로 적을 얼림</figcaption></figure><figure class="rshot"><img data-img="mawang_boss_in" alt="웨이브 10 보스 등장 연출. 경고 배너와 화면 톤 전환" loading="lazy"><figcaption>웨이브 10 보스 등장 연출. 경고 배너와 화면 톤 전환</figcaption></figure><figure class="rshot"><img data-img="mawang_boss" alt="보스 웨이브 전투" loading="lazy"><figcaption>보스 웨이브 전투</figcaption></figure><figure class="rshot"><img data-img="mawang_reward" alt="웨이브 보상 3택 1. 새 마왕군, 배치 영역 확장 등 성장 선택" loading="lazy"><figcaption>웨이브 보상 3택 1. 새 마왕군, 배치 영역 확장 등 성장 선택</figcaption></figure></div>' },
       { id:'system', icon:'04', label:'성장 시스템 설계', html:
         '<div class="dcards"><div><b>스킬 19종</b><span>딜·디버프·버프·궁극 4계열. 강화 레벨 없이 SP로 봉인을 풀면 완성되고, 3칸(특성으로 최대 5칸)에 장착합니다. 즉시형·지점 조준형·방향형 시전.</span></div><div><b>마왕 레벨 · 이중 재화</b><span>용사 처치 XP로 레벨업해 LP를, 라운드 진행으로 SP를 받습니다. 레벨은 런마다 Lv1로 돌아가고 LP·SP·해금은 계정에 남습니다.</span></div><div><b>특성 트리 40노드</b><span>몬스터·용사·스킬·재화 4갈래, 갈래마다 3라인 + 캡스톤. 부모 노드를 만렙까지 찍어야 다음이 열립니다.</span></div><div><b>증강 30종</b><span>런 한정, 3장 중 1장, 중복 불가. 치명타, 메아리 재시전, 처치 시 쿨타임 감소, 첫 피격 무효 보호막 같은 특이 매커니즘 10여 종.</span></div><div><b>시너지 12종</b><span>직업 6종의 배치 수(3/5명) 시너지와, 서로 다른 두 직업 조합 시너지 6종.</span></div></div><p style="font-size:16px;color:var(--text);font-weight:700;margin:22px 0 6px">재화를 둘로 나눈 이유</p><p>하나로 합치면 특성과 스킬 해금이 같은 지갑을 두고 경쟁해서 한쪽만 찍는 최적해가 생깁니다. LP는 <b>얼마나 잘 싸웠나(처치)</b>, SP는 <b>얼마나 멀리 갔나(라운드)</b>를 보상하도록 획득 경로부터 분리했습니다. SP는 처음에 10라운드마다만 줬다가, 초반 런에서 스킬 해금 체감이 없다는 테스트 결과를 보고 2라운드마다 잘게 주는 방식으로 바꿨습니다.</p><div class="dpanel"><h4>XP 곡선</h4><p style="font-size:14px;color:var(--text)">필요 XP = 60 + 40n + 8n² (n = 레벨 - 1)</p></div><div class="dwhy"><b>왜 이렇게 했는가</b>초반 레벨업은 빠르게 체감되고 후반은 완만해지도록 2차 항을 넣었습니다. 런당 LP가 약 15~18개 나오도록 맞춰서, 한 런에 특성 라인 하나(9 LP)를 뚫고 한 갈래 완성(33 LP)은 약 2런, 전체 완성은 8~10런이 걸리게 했습니다. 부모 만렙 해금 규칙은 얕게 여러 갈래를 찍기보다 한 방향으로 깊게 파서 빌드 정체성이 생기게 하려는 의도입니다.</div><p style="font-size:16px;color:var(--text);font-weight:700;margin:22px 0 6px">코어는 순수 C#, 실행과 연출은 MonoBehaviour</p><p><code>SkillManager</code>, <code>MawangLevel</code>, <code>TraitTree</code>, <code>AugmentRun</code>, <code>SynergyTracker</code>는 전부 MonoBehaviour가 아닌 순수 C# 클래스입니다. 스킬 매니저는 피해를 직접 주지 않고 시전 요청 이벤트만 보냅니다.</p><div class="dwhy"><b>왜 이렇게 했는가</b>실제 게임 씬(그리드·유닛)은 팀원이 동시에 만들고 있어서, 성장 시스템을 씬에 묶으면 그 씬이 완성될 때까지 아무것도 검증할 수 없었습니다. 판정(쿨타임·장착·전투 중 여부)과 실행(피해·CC·VFX)을 나눠 두니 개인 샌드박스 씬에서 1~2주차에 스킬·특성·증강을 먼저 완성했고, 3주차에 실전투로 옮길 때 코어 코드는 거의 바뀌지 않았습니다. 실행부는 VFX 프리팹이 없으면 코드로 그린 연출로 대신해서 아트가 늦어도 검증이 막히지 않게 했습니다.</div><p>성장 시스템은 인터페이스 폴더만 참조하고 테스트용 샌드박스는 절대 참조하지 않게 의존 방향을 한쪽으로 고정했습니다. 또 특성(계정 영구)과 증강(이번 런만)의 보정값은 필드 모양이 같아도 별도 타입으로 나눴습니다. 저장 수명이 다른 값을 한 타입에 담으면 런이 끝난 증강이 저장되는 버그가 구조적으로 생길 수 있기 때문입니다.</p>' },
       { id:'integration', icon:'05', label:'실전투 통합', html:
