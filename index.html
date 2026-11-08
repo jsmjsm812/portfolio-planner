@@ -997,7 +997,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background
           </div>
         </div>
         <div class="pj-hero pj-hero-clean" style="border-radius:var(--card-radius);border:1px solid var(--line);aspect-ratio:16/9">
-          <img data-img="mawang_title" alt="용사 때문에 레벨업 전투 화면, 배치한 마왕군이 몰려오는 용사를 막는 모습">
+          <img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트, 마왕성 성벽 위의 마왕과 마왕군, 몰려오는 용사들">
           <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
         </div>
       </div>
@@ -1020,7 +1020,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background
       <div class="proj-grid">
         <button class="proj" type="button" data-cat="team" data-open="mawang">
           <div class="proj-cover pj-hero pj-hero-clean" style="aspect-ratio:16/9;border-bottom:1px solid var(--line)">
-            <img data-img="mawang_title" alt="용사 때문에 레벨업 전투 화면">
+            <img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트">
             <span class="badge-2d" style="left:14px;top:14px;transform:none">2D</span>
           </div>
           <div class="proj-body">
@@ -1221,7 +1221,7 @@ code { font-family: ui-monospace, Menlo, monospace; font-size: .88em; background
       </div>
       <div class="clip-grid">
         <button class="clipcard" type="button" data-open="mawang">
-          <div class="cbox"><img data-img="mawang_title" alt="용사 때문에 레벨업 전투 화면"><video class="loopv" muted loop playsinline preload="none" data-src="video/mawang_play.mp4" aria-hidden="true"></video></div>
+          <div class="cbox"><img data-img="mawang_title" alt="용사 때문에 레벨업 타이틀 아트"><video class="loopv" muted loop playsinline preload="none" data-src="video/mawang_play.mp4" aria-hidden="true"></video></div>
           <div class="cbody"><h4>용사 때문에 레벨업</h4><p>마왕이 되어 쳐들어오는 용사를 막는 역방향 타워 디펜스</p><span class="proj-open">영상 더 보기 ▸</span></div>
         </button>
         <button class="clipcard" type="button" data-open="kingdom">
@@ -1325,7 +1325,7 @@ var GAME_IMG = {
   lg_killcam: "img/lg_killcam.webp",
   lg_stage1: "img/lg_stage1.webp",
   wc_title: "img/wc_title.webp",
-  mawang_title: "img/mawang_title_v3.webp",
+  mawang_title: "img/mawang_title_v2.webp",
   mawang_prep: "img/mawang_prep.webp",
   mawang_meteor: "img/mawang_meteor.webp",
   mawang_zero: "img/mawang_zero.webp",
@@ -1569,7 +1569,7 @@ var PROJECTS = {
     spec: [['기간','2026.09.07 ~ 10.16 (6주)'],['엔진','Unity 6 · C#'],['팀','5인'],['시점','2D 탑뷰'],['상태','STOVE 출시 (2026.11.06)']],
     sections: [
       { id:'status', icon:'01', label:'진행 상황', html:
-        '<p>6주(2026.09.07 ~ 10.16) 일정으로 만든 프로젝트로, <b>2026.11.06 STOVE에 출시했습니다</b> (<a href="https://store.onstove.com/ko/games/106167" target="_blank" rel="noopener">스토어 페이지 ↗</a>). 화면 이미지는 STOVE 스토어에 등록한 스크린샷입니다.</p><div class="dcards"><div><b>커밋 116개</b><span>2026.09.08 ~ 10.13, 본인 작성분</span></div><div><b>Pull Request 19개</b><span>기능 브랜치 단위로 머지</span></div><div><b>C# 134파일 · 약 3만 줄</b><span>본인이 만든 파일 기준</span></div><div><b>데이터 에셋</b><span>스킬 19 · 증강 30 · 특성 40 · 시너지 12</span></div></div>' },
+        '<p>6주(2026.09.07 ~ 10.16) 일정으로 만든 프로젝트로, <b>2026.11.06 STOVE에 출시했습니다</b> (<a href="https://store.onstove.com/ko/games/106167" target="_blank" rel="noopener">스토어 페이지 ↗</a>). 상단 이미지는 로고(AI 생성)이고, 아래 ‘화면’은 STOVE 스토어에 등록한 스크린샷입니다.</p><div class="dcards"><div><b>커밋 116개</b><span>2026.09.08 ~ 10.13, 본인 작성분</span></div><div><b>Pull Request 19개</b><span>기능 브랜치 단위로 머지</span></div><div><b>C# 134파일 · 약 3만 줄</b><span>본인이 만든 파일 기준</span></div><div><b>데이터 에셋</b><span>스킬 19 · 증강 30 · 특성 40 · 시너지 12</span></div></div>' },
       { id:'role', icon:'02', label:'내 담당', html:
         '<div class="dsplit"><div><h5>내가 담당</h5><ul><li><b>마왕 성장 시스템 전체</b>: 스킬, 마왕 레벨업, 특성 트리 40노드, 증강 30종, 시너지 12종</li><li><b>실전투 통합</b>: 성장 시스템을 팀원이 만든 실제 유닛 전투에 연결</li><li><b>밸런스</b>: 밸런스 시트 관리, 시뮬레이터·생성기·테스트 루프 제작, 수치 조정</li><li><b>인게임 연출·UX</b>: 튜토리얼, 오프닝 스토리, 로딩 화면, 웨이브 배너, 카메라, 체력바</li><li><b>진행·저장</b>: 이어하기, 난이도 잠금, 기록, 마왕군 해금, 도감·업적 연동</li><li><b>QA</b>: 로비·인게임 디버그 패널, 상황 재현 도구</li></ul></div><div><h5>팀원 담당</h5><ul><li>그리드 배치와 합성, 스테이지 진행 흐름 (2인)</li><li>용사와 마왕군 전투 로직, 사운드 시스템</li><li>UI 아트와 프리팹 디자인 (저는 이 UI를 게임 로직에 연결하고 연출을 얹었습니다)</li></ul></div></div>' },
       { id:'about', icon:'03', label:'게임 소개', html:
